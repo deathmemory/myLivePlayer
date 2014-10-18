@@ -125,11 +125,12 @@ package com.longtailvideo.jwplayer.view {
 			RootReference.stage.scaleMode = StageScaleMode.NO_SCALE;
 			RootReference.stage.stage.align = StageAlign.TOP_LEFT;
 
-			if (RootReference.stage.stageWidth > 0) {
+			//if (RootReference.stage.stageWidth > 0) {
+			if (RootReference.root.width > 0) {
 				resizeStage();
 			} else {
-				RootReference.stage.addEventListener(Event.RESIZE, resizeStage);
-				RootReference.stage.addEventListener(Event.ADDED_TO_STAGE, resizeStage);
+				RootReference.root.addEventListener(Event.RESIZE, resizeStage);
+				RootReference.root.addEventListener(Event.ADDED_TO_STAGE, resizeStage);
 			}
 
 			_root = new MovieClip();
@@ -141,8 +142,8 @@ package com.longtailvideo.jwplayer.view {
 
 		protected function resizeStage(evt:Event=null):void {
 			try {
-				RootReference.stage.removeEventListener(Event.RESIZE, resizeStage);
-				RootReference.stage.removeEventListener(Event.ADDED_TO_STAGE, resizeStage);
+				RootReference.root.removeEventListener(Event.RESIZE, resizeStage);
+				RootReference.root.removeEventListener(Event.ADDED_TO_STAGE, resizeStage);
 			} catch(err:Error) {
 				Logger.log("Can't add stage resize handlers: " + err.message);
 			}
@@ -165,16 +166,16 @@ package com.longtailvideo.jwplayer.view {
 
 
 		public function setupView():void {
-			RootReference.stage.addChildAt(_root, 0);
+			RootReference.root.addChildAt(_root, 0);
 			_root.visible = false;
 		
 			setupLayers();
 			createComponents();
 			setupComponents();
 
-			RootReference.stage.addEventListener(Event.RESIZE, resizeHandler);
+			RootReference.root.addEventListener(Event.RESIZE, resizeHandler);
 			RootReference.stage.addEventListener(FocusEvent.FOCUS_OUT, keyFocusOutHandler);
-			RootReference.stage.addEventListener(FocusEvent.FOCUS_IN, keyFocusInHandler);
+			RootReference.root.addEventListener(FocusEvent.FOCUS_IN, keyFocusInHandler);
 			RootReference.stage.addEventListener(Event.MOUSE_LEAVE, moveTimeout);
 			RootReference.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveHandler);
 			RootReference.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyboardHandler);
