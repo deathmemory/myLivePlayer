@@ -2,6 +2,10 @@
 Thumbs.db
 ehthumbs.db
 
+bin-debug/*
+bin-release/*
+html-template/*
+
 # Folder config file
 Desktop.ini
 

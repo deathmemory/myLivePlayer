@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:jw="com.longtailvideo.jwplayer.player.*"
+			   creationComplete="application1_creationCompleteHandler(event)"
+			   addedToStage="application1_addedToStageHandler(event)"
+			   minWidth="955" minHeight="600">
+	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="fullScreen"/>
+		<s:State name="wideScreen"/>
+	</s:states>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.longtailvideo.jwplayer.player.Player;
+			
+			import mx.events.FlexEvent;
+			
+			private var _player:Player;
+			
+			protected function application1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onLoaderComplete(evt:Event):void
+			{
+				trace("onLoaderComplete");
+			}
+			
+			protected function onLoaderIOError(evt:Event):void
+			{
+				trace("onLoaderIOError");
+			}
+			
+			protected function onLoaderSecurityError(evt:Event):void
+			{
+				trace("onLoaderSecurityError");
+			}
+			
+			private function playerReadyHandler(event:Event):void
+			{
+				trace('播放器初始化完成.');
+				/*
+				_player = livePlayer.player;
+				
+				_player.addEventListener( Event.COMPLETE, onLoaderComplete );
+				_player.addEventListener( IOErrorEvent.IO_ERROR, onLoaderIOError );
+				_player.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onLoaderSecurityError );
+				
+				var addr:String = "http://127.0.0.1/videoes/xtxl.flv";
+				_player.load(
+					{   type:'ol',
+						file:addr
+					});
+				*/
+			}
+			
+			protected function application1_addedToStageHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				trace("application1_addedToStageHandler");
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Group width="100%" height="100%">
+		<s:layout>
+			<s:HorizontalLayout />
+		</s:layout>
+		<s:BorderContainer borderWeight="0" height="100%" width="100%" backgroundColor="#000000" borderVisible="false">
+			<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" />	
+		</s:BorderContainer>
+		
+		
+	</s:Group>
+	
+</s:Application>
