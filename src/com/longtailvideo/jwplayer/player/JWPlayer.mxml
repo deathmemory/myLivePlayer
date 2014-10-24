@@ -27,10 +27,10 @@
             {
                 try
                 {
-                    /** 清除传入参数,将在播放器完成后人工加载视频 **/
-                    var cleanConfigObject:Object = ObjectUtil.copy(systemManager.loaderInfo.parameters);
-                    delete cleanConfigObject['file'];
-                    delete cleanConfigObject['type'];
+                    ///** 清除传入参数,将在播放器完成后人工加载视频 **/
+                    //var cleanConfigObject:Object = ObjectUtil.copy(systemManager.loaderInfo.parameters);
+                    //delete cleanConfigObject['file'];
+                    //delete cleanConfigObject['type'];
 					//_player = new Player(playerHolder,cleanConfigObject);
                     _player = new Player(playerHolder);
                     _player.addEventListener("jwplayerReady",playerReadyHandler);

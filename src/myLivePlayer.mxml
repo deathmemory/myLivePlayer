@@ -4,7 +4,6 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:jw="com.longtailvideo.jwplayer.player.*"
 			   creationComplete="application1_creationCompleteHandler(event)"
-			   addedToStage="application1_addedToStageHandler(event)"
 			   minWidth="955" minHeight="600">
 	
 	<s:states>
@@ -61,14 +60,7 @@
 						file:addr
 					});
 				*/
-			}
-			
-			protected function application1_addedToStageHandler(event:Event):void
-			{
-				// TODO Auto-generated method stub
-				trace("application1_addedToStageHandler");
-			}
-			
+			}			
 		]]>
 	</fx:Script>
 	<s:Group width="100%" height="100%">
