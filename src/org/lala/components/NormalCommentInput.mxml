@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+         xmlns:s="library://ns.adobe.com/flex/spark" 
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         xmlns:mk="org.lala.components.*"
+         width="100%" height="100%"
+		 creationComplete="init()">
+    <s:layout>
+		<s:BasicLayout />
+    </s:layout>
+    <fx:Declarations>
+        <!-- 普通弹幕输入界面 -->
+    </fx:Declarations>
+    <fx:Script>
+        <![CDATA[
+			import com.de.aggro.utils.BrowserCookieUtil;
+			
+			import flashx.textLayout.conversion.TextConverter;
+			
+			import mx.events.FlexEvent;
+			
+			import org.lala.components.skins.IconButtonSkin;
+			import org.lala.event.EventBus;
+			import org.lala.event.MukioEvent;
+            
+			private var _params:Object;
+			private var timer :Timer;
+			
+            protected function sendButton_clickHandler(event:*):void
+            {
+                if(textInput.text == "")
+                {
+                    return;
+                }
+				else
+				{
+					this.enabled = false;
+					timer = new Timer(5000, 1);
+					timer.addEventListener(TimerEvent.TIMER_COMPLETE, timeoutFunc); 
+					timer.start();
+				}
+                var data:Object={};
+                data.type = 'normal';
+                data.text = textInput.text;
+                data.color = colorPicker.selectedColor;
+                data.size = styleChooser.stylePanel.size;
+                data.mode = styleChooser.stylePanel.mode;
+				/** 客户端和浏览器cookie的值不一样要区别对待 **/
+				if (_params.mkjogo_u != null && _params.mkjogo_s != null) {
+		            data.mkjogo_u = _params.mkjogo_u;
+					data.mkjogo_s = _params.mkjogo_s;
+				} else if (_params.userid != null && _params.session != null) {
+					data.userid = _params.userid;
+					data.session = _params.session;
+				}
+				
+                EventBus.getInstance().sendMukioEvent(MukioEvent.DISPLAY,data);
+                textInput.text = "";
+            }
+			
+			private function timeoutFunc(evt:Event):void 
+			{  
+				this.enabled = true;
+				validateNow();
+			}
+			
+			private function init():void
+			{	
+				colorPicker.visible = false;
+				colorPicker.includeInLayout = false;	//隐藏多余的画板
+				langmgr.init(systemManager.loaderInfo.parameters);
+				
+				sendButton.label = langmgr.getString("nci_sendButton");
+			}
+			
+			protected function textInput_activateHandler(event:Event):void
+			{
+				this.checkLogin();
+			}
+			
+			protected function checkLogin():void
+			{
+				/** 判断登录有效性，只有登录才能发言 **/
+				var cookieU:Object = null; //BrowserCookieUtil.getCookie("mkjogo_u");
+				var cookieS:Object = null; //BrowserCookieUtil.getCookie("mkjogo_s");
+				
+				if ( null == _params )
+					_params = systemManager.loaderInfo.parameters;
+				
+				if ( (cookieU == null || cookieS == null) 
+					&& ( _params["mkjogo_u"] == null || _params["mkjogo_s"] == null ) 
+					&& ( _params["userid"] == null || _params["session"] == null )
+				) {
+					textInput.enabled = false;	
+					loginGroup.visible = true;
+					logLab.htmlText = "please <a href='http://account.mkjogo.com/user/login' target='_self'><font color='#0000ff'><u>login</u></font></a> first";
+				} else {
+					loginGroup.visible = false;
+					textInput.enabled = true;
+				}
+			}
+			
+			protected function textInput_creationCompleteHandler(event:FlexEvent):void
+			{
+				this.checkLogin();
+			}
+			
+		]]>
+    </fx:Script>
+	<s:Group width="100%" height="100%">		
+		<s:layout>
+			<s:HorizontalLayout gap="1" verticalAlign="middle"/>
+		</s:layout>
+		<s:Spacer width="5" />
+		<mk:CommentStyleChooser id="styleChooser" width="30" height="30" />
+		<s:Spacer width="5" />
+		<mx:ColorPicker id="colorPicker" selectedColor="{styleChooser.stylePanel.color}" />
+		
+		<s:TextInput id="textInput" width="100%" height="75%" enter="sendButton_clickHandler(event)" maxChars="255"
+					 creationComplete="textInput_creationCompleteHandler(event)"
+					 activate="textInput_activateHandler(event)"/>
+		<s:Spacer width="5" />
+		<mk:IconButton id="sendButton" label="发送"  width="70" height="75%" click="sendButton_clickHandler(event)" 
+					   skinClass="org.lala.components.skins.IconButtonSkin"/>
+		<s:Spacer width="5" />
+	</s:Group>	
+	
+	<s:Group id="loginGroup" width="100%" height="100%" visible="false">
+		<s:layout>
+			<s:HorizontalLayout gap="1" verticalAlign="middle" horizontalAlign="center"/>
+		</s:layout>
+		<mx:Label id="logLab" selectable="true" text="please login first" />
+	</s:Group>
+</s:Group>
