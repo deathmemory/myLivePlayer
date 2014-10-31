@@ -13,14 +13,15 @@
     </fx:Declarations>
     <fx:Script>
         <![CDATA[
-			import com.de.aggro.utils.BrowserCookieUtil;
+			import org.lala.lang.langmgr;
+			//import com.de.aggro.utils.BrowserCookieUtil;
 			
 			import flashx.textLayout.conversion.TextConverter;
 			
 			import mx.events.FlexEvent;
 			
 			import org.lala.components.skins.IconButtonSkin;
-			import org.lala.event.EventBus;
+			//import org.lala.event.EventBus;
 			import org.lala.event.MukioEvent;
             
 			private var _params:Object;
@@ -54,7 +55,7 @@
 					data.session = _params.session;
 				}
 				
-                EventBus.getInstance().sendMukioEvent(MukioEvent.DISPLAY,data);
+                //EventBus.getInstance().sendMukioEvent(MukioEvent.DISPLAY,data);
                 textInput.text = "";
             }
 			

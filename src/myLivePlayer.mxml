@@ -3,15 +3,19 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:jw="com.longtailvideo.jwplayer.player.*"
-			   creationComplete="application1_creationCompleteHandler(event)"
-			   minWidth="955" minHeight="600">
+			   xmlns:mk="org.lala.components.*"
+			   applicationComplete="application1_applicationCompleteHandler(event)"
+			   currentStateChange="application1_currentStateChangeHandler(event)"
+			   addedToStage="application1_addedToStageHandler(event)"
+			   width="100%" height="100%">
 	
 	<s:states>
 		<s:State name="normal"/>
 		<s:State name="fullScreen"/>
 		<s:State name="wideScreen"/>
 	</s:states>
-	
+
+	<fx:Style source="myLivePlayer.css" />
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
@@ -20,14 +24,14 @@
 			import com.longtailvideo.jwplayer.player.Player;
 			
 			import mx.events.FlexEvent;
+			import mx.events.StateChangeEvent;
 			
+			import org.lala.lang.langmgr;
+			import org.lala.utils.AppConfig;
+			/** 主播放器 **/
 			private var _player:Player;
-			
-			protected function application1_creationCompleteHandler(event:FlexEvent):void
-			{
-				// TODO Auto-generated method stub
-				
-			}
+			/** 应用程序配置 **/
+			private var appConfig:AppConfig;
 			
 			protected function onLoaderComplete(evt:Event):void
 			{
@@ -61,17 +65,47 @@
 					});
 				*/
 			}			
+			
+			protected function application1_currentStateChangeHandler(event:StateChangeEvent):void
+			{
+				if ( appConfig )
+					appConfig.state = this.currentState;
+			}
+			/** 在loadInfo可读取时立即初始化配置 **/
+			protected function application1_addedToStageHandler(event:Event):void
+			{
+				appConfig = new AppConfig(loaderInfo.parameters);
+				/** 初始化到无界面状态 **/
+				if(appConfig.state == 'fullScreen')
+				{
+					//isInnerFullScreenState = true;
+				}
+			}
+			
+			protected function application1_applicationCompleteHandler(event:FlexEvent):void
+			{
+				this.currentState = appConfig.state;
+			}
+			
 		]]>
 	</fx:Script>
 	<s:Group width="100%" height="100%">
 		<s:layout>
 			<s:HorizontalLayout />
 		</s:layout>
-		<s:BorderContainer borderWeight="0" height="100%" width="100%" backgroundColor="#000000" borderVisible="false">
-			<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" />	
-		</s:BorderContainer>
-		
-		
+		<s:Group width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout gap="1" paddingTop="0" paddingBottom="0"/>
+			</s:layout>
+			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false">
+				<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" 
+							 top="0" bottom="0" left="0" right="0"/>	
+			</s:BorderContainer>
+			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
+				<mk:NormalCommentInput id="nCommnetInput" width="100%" height="100%" />				
+			</s:BorderContainer>
+			
+		</s:Group>
 	</s:Group>
 	
 </s:Application>

@@ -174,7 +174,7 @@ package com.longtailvideo.jwplayer.view {
 			setupComponents();
 
 			RootReference.root.addEventListener(Event.RESIZE, resizeHandler);
-			RootReference.stage.addEventListener(FocusEvent.FOCUS_OUT, keyFocusOutHandler);
+			RootReference.root.addEventListener(FocusEvent.FOCUS_OUT, keyFocusOutHandler);
 			RootReference.root.addEventListener(FocusEvent.FOCUS_IN, keyFocusInHandler);
 			RootReference.stage.addEventListener(Event.MOUSE_LEAVE, moveTimeout);
 			RootReference.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveHandler);
@@ -359,10 +359,17 @@ package com.longtailvideo.jwplayer.view {
 			if (_model.fullscreen != _fullscreen) {
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_FULLSCREEN, _fullscreen));
 			}
-            var size:Object = {
-                width:  RootReference.stage.stageWidth,
-                height: RootReference.stage.stageHeight
-            };
+            var size:Object; 
+			if ( _fullscreen )
+				size = {
+	                width:  RootReference.stage.stageWidth,
+	                height: RootReference.stage.stageHeight
+	            };
+			else
+				size = {
+					width:  RootReference.root.width,
+					height: RootReference.root.height
+				};
             if (size.width && size.height) {
                 redraw();
                 dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_RESIZE, size));
@@ -382,7 +389,15 @@ package com.longtailvideo.jwplayer.view {
 
 		/** Redraws the plugins and player components **/
 		public function redraw():void {
-			layoutManager.resize(RootReference.stage.stageWidth, RootReference.stage.stageHeight);
+			//layoutManager.resize(RootReference.stage.stageWidth, RootReference.stage.stageHeight);
+			if(RootReference.stage.displayState == StageDisplayState.FULL_SCREEN)
+			{
+				layoutManager.resize(RootReference.stage.stageWidth, RootReference.stage.stageHeight);
+			}
+			else
+			{
+				layoutManager.resize(RootReference.root.width, RootReference.root.height);
+			}
 			
 			if (audioMode) {
 				if (_controlbarMargin < 0) _controlbarMargin = _model.config.pluginConfig('controlbar').margin;

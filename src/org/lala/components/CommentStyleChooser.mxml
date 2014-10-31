@@ -11,6 +11,7 @@
 
     <fx:Script>
         <![CDATA[
+			import org.lala.lang.langmgr;
             import mx.events.FlexEvent;
             
             import org.lala.components.skins.IconButtonSkin;
@@ -48,6 +49,7 @@
 			
 			private function init():void
 			{
+				langmgr.init(systemManager.loaderInfo.parameters);
 				styleButton.label = langmgr.getString("csc_styleButton");
 			}
 
