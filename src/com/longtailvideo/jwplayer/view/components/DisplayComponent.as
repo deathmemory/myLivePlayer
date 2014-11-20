@@ -39,9 +39,9 @@
 		protected var _bufferRotationAngle:Number = 45;
 
 		protected var _forced:String = "";
-
-		/** Keep track of the last click to enable double-click **/
-		protected var _lastClick:Date;
+		
+		/** double click wait timer **/
+		protected var _dbclickTimer:Timer = new Timer(250, 1);
 		
 		public function DisplayComponent(player:IPlayer) {
 			super(player, "display");
@@ -88,7 +88,8 @@
 			player.addEventListener(PlayerEvent.JWPLAYER_ERROR, errorHandler);
 			player.addEventListener(PlaylistEvent.JWPLAYER_PLAYLIST_ITEM, itemHandler);
 			player.addEventListener(PlaylistEvent.JWPLAYER_PLAYLIST_COMPLETE, playlistComplete);
-			addEventListener(MouseEvent.CLICK, clickHandler);
+			addEventListener(MouseEvent.CLICK, clickTypeHandler);
+			_dbclickTimer.addEventListener(TimerEvent.TIMER_COMPLETE, clickHandler);
 			this.buttonMode = true;
 		}
 		
@@ -275,7 +276,17 @@
 			_errorState = true;
 		}
 		
-		protected function clickHandler(event:MouseEvent):void {
+		/** 手工区分双击事件 **/
+		protected function clickTypeHandler(event:MouseEvent):void {
+			if ( _dbclickTimer.running ){ /** 如果timer在跑，说明已经单击过一次，这是在超时前的又一次单击算作双击 **/
+				_dbclickTimer.stop();
+				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_FULLSCREEN, !_player.config.fullscreen));
+			} else {
+				_dbclickTimer.start();
+			}	
+		}
+		
+		protected function clickHandler(event:TimerEvent):void {
 			dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_CLICK));
 			if (!_player.getControls()) return;
 			if (currentState == PlayerState.PLAYING || currentState == PlayerState.BUFFERING) {
@@ -284,15 +295,6 @@
 			} else {
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));
 			}
-			
-			var currentTime:Date = new Date();
-			if (_lastClick && currentTime.getTime() - _lastClick.getTime() < 500) {
-				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_FULLSCREEN, !_player.config.fullscreen));
-				_lastClick = null;
-			} else {
-				_lastClick = new Date();
-			}
-			
 		}
 		
 		

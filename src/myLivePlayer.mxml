@@ -32,6 +32,8 @@
 			private var _player:Player;
 			/** 应用程序配置 **/
 			private var appConfig:AppConfig;
+			private var savedState:String = 'normal';
+			private var isInnerFullScreenState:Boolean = false;
 			
 			protected function onLoaderComplete(evt:Event):void
 			{
@@ -85,8 +87,50 @@
 			protected function application1_applicationCompleteHandler(event:FlexEvent):void
 			{
 				this.currentState = appConfig.state;
+				//commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
+				
+				/** 全屏情况处理,更改state **/
+				stage.addEventListener( FullScreenEvent.FULL_SCREEN, fullScreenHandler );
 			}
 			
+			/** 处理播放器的工具条上的隐藏弹幕界面按钮事件 **/
+			private function innerFullScreenHandler(event:Event):void
+			{
+				if(stage.displayState == 'fullScreen')
+				{
+					return;
+				}
+				if(!isInnerFullScreenState)
+				{
+					savedState = currentState;
+					currentState = 'fullScreen';
+				}
+				else
+				{
+					currentState = savedState;
+				}
+				isInnerFullScreenState = !isInnerFullScreenState;
+			}
+			/** 
+			 * 全屏处理:fullScreen状态是播放器填满整个flash插件,全屏则是flash插件填满屏幕
+			 * 其实是两个不同的状态,但是共用一个state,而使用isInnerFullScreenState来区分
+			 ***/
+			private function fullScreenHandler(event:FullScreenEvent):void
+			{
+				if(isInnerFullScreenState)
+				{
+					return;
+				}
+				if(stage.displayState == 'fullScreen')
+				{
+					savedState = currentState;
+					currentState = 'fullScreen';
+				}
+				else
+				{
+					currentState = savedState;
+				}
+			}
 		]]>
 	</fx:Script>
 	<s:Group width="100%" height="100%">

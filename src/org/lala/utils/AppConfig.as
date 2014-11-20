@@ -10,7 +10,7 @@ package org.lala.utils
         /** 默认的配置,及配置键 **/
         protected var _config:Object=
             {
-              'state':'fullScreen'
+              'state':'normal'
             };
         /**
         * @param _params 用来初始化的loadInfo
