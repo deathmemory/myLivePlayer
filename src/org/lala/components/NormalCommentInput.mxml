@@ -21,7 +21,7 @@
 			import mx.events.FlexEvent;
 			
 			import org.lala.components.skins.IconButtonSkin;
-			//import org.lala.event.EventBus;
+			import org.lala.event.EventBus;
 			import org.lala.event.MukioEvent;
             
 			private var _params:Object;
@@ -55,7 +55,7 @@
 					data.session = _params.session;
 				}
 				
-                //EventBus.getInstance().sendMukioEvent(MukioEvent.DISPLAY,data);
+                EventBus.getInstance().sendMukioEvent(MukioEvent.DISPLAY,data);
                 textInput.text = "";
             }
 			
