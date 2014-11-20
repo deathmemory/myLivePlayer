@@ -29,13 +29,14 @@
 			
             protected function sendButton_clickHandler(event:*):void
             {
-                if(textInput.text == "")
+                if(textInput.text == "" || ! this.enabled)
                 {
                     return;
                 }
 				else
 				{
 					this.enabled = false;
+					this.textInput.enabled = false;
 					timer = new Timer(5000, 1);
 					timer.addEventListener(TimerEvent.TIMER_COMPLETE, timeoutFunc); 
 					timer.start();
@@ -62,6 +63,7 @@
 			private function timeoutFunc(evt:Event):void 
 			{  
 				this.enabled = true;
+				this.textInput.enabled = true;
 				validateNow();
 			}
 			

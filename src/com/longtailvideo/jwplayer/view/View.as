@@ -845,7 +845,7 @@ package com.longtailvideo.jwplayer.view {
 
 			showControls();
 			startFader();
-			if (evt.keyCode == 32 || evt.keyCode == 13) {
+			if ((evt.keyCode == 32 || evt.keyCode == 13) && evt.ctrlKey) {	// space || Enter with ctrl
 				if (_instreamMode) {
 					_instreamControls.controlbar.dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));
 				} else {
@@ -856,35 +856,35 @@ package com.longtailvideo.jwplayer.view {
 					}
 				}
 			}
-			if (evt.keyCode == 39) {
+			if (evt.keyCode == 39) {	// Right 
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_SEEK, _currPos + 5));
 			}
 
-			if (evt.keyCode == 37) {
+			if (evt.keyCode == 37) {	// Left 
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_SEEK, _currPos - 5));
 			}
 			var newvol:Number;
-			if (evt.keyCode == 38) {
+			if (evt.keyCode == 38) {	// up
 				newvol = _player.config.volume + 10;
 				// change the volume
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_VOLUME, (newvol > 100 ? 100 : newvol)));
 				// update the slider
 				dispatchEvent(new MediaEvent(MediaEvent.JWPLAYER_MEDIA_VOLUME));
 			}
-			if (evt.keyCode == 40) {
+			if (evt.keyCode == 40) {	// down
 				newvol = _player.config.volume - 10;
 				// change the volume
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_VOLUME, (newvol < 0 ? 0 : newvol)));
 				// update the slider
 				dispatchEvent(new MediaEvent(MediaEvent.JWPLAYER_MEDIA_VOLUME));
 			}
-			if (evt.keyCode == 77) {
+			if (evt.keyCode == 77 && evt.ctrlKey) {	// m/M 控制声音
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_MUTE, !_player.config.mute));
 			}
-			if (evt.keyCode == 70) {
+			if (evt.keyCode == 70 && evt.ctrlKey) {	// f/F 控制全屏
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_FULLSCREEN, !_player.config.fullscreen));
 			}
-			if (evt.keyCode >= 48 && evt.keyCode <= 59) {
+			if (evt.keyCode >= 48 && evt.keyCode <= 59 && evt.ctrlKey) {	// 控制进度百分比
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_SEEK, Math.round(_duration * ((evt.keyCode - 48)/10))));
 			}
 
@@ -919,7 +919,7 @@ package com.longtailvideo.jwplayer.view {
 				_components.dock.show();
 				if (_instreamControls) {
 					_instreamControls.controlbar.show();
-	}
+				}
 			}
 			if (!audioMode) {
 				_components.logo.show();
