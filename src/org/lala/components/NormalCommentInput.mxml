@@ -35,8 +35,8 @@
                 }
 				else
 				{
-					this.enabled = false;
-					this.textInput.enabled = false;
+					//this.enabled = false;
+					//this.textInput.enabled = false;
 					timer = new Timer(5000, 1);
 					timer.addEventListener(TimerEvent.TIMER_COMPLETE, timeoutFunc); 
 					timer.start();

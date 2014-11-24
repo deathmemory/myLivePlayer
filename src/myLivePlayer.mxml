@@ -18,6 +18,7 @@
 	<fx:Style source="myLivePlayer.css" />
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<fx:String id='version'>1.0.0.1</fx:String>
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
@@ -28,12 +29,16 @@
 			
 			import org.lala.lang.langmgr;
 			import org.lala.utils.AppConfig;
+			import org.lala.plugins.CommentView;
 			/** 主播放器 **/
 			private var _player:Player;
 			/** 应用程序配置 **/
 			private var appConfig:AppConfig;
 			private var savedState:String = 'normal';
 			private var isInnerFullScreenState:Boolean = false;
+			[Bindable]
+			/** 弹幕播放器插件类的引用 **/
+			private var commentView:CommentView = CommentView.getInstance();
 			
 			protected function onLoaderComplete(evt:Event):void
 			{
@@ -88,7 +93,8 @@
 			{
 				this.currentState = appConfig.state;
 				//commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
-				
+				commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
+				commentView.version = version;
 				/** 全屏情况处理,更改state **/
 				stage.addEventListener( FullScreenEvent.FULL_SCREEN, fullScreenHandler );
 			}

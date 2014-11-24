@@ -36,7 +36,7 @@ package org.lala.plugins
      **/    
     /** 内全屏按下 **/
     [Event(name='innerFullScreen',type='flash.events.Event')]
-    public class CommentView extends Sprite implements IPlugin
+    public class CommentView extends Sprite implements IPlugin6
     {
         [Embed(source="assets/innerFullScreenIcon.png")]
         /** 内全屏图标 **/
@@ -94,6 +94,11 @@ package org.lala.plugins
         private var _isPlaying:Boolean = false;
 		/**是否为 实时弹幕(收到弹幕马上播放)**/
 
+		public function get target():String
+		{
+			return _version;
+		}
+		
 		public function set realtime(_in:Boolean):void
 		{
 			for each(var manager:CommentManager in managers)

@@ -25,6 +25,7 @@ package com.longtailvideo.jwplayer.controller {
 	import flash.net.URLRequest;
 	import flash.utils.Timer;
 
+	import org.lala.plugins.*;
 	/**
 	 * Sent when the all of the setup steps have successfully completed.
 	 *
@@ -229,6 +230,7 @@ package com.longtailvideo.jwplayer.controller {
 			
 			// Compiled in plugins go here.  Example:
 			//_view.addPlugin("test", new TestPlugin());
+			_view.addPlugin("commentview", CommentView.getInstance());
 		}
 
 		protected function loadPlaylist():void {
