@@ -902,8 +902,6 @@ package com.longtailvideo.jwplayer.view {
 		}
 		
 		private function hideControls():void {
-			if ( RootReference.stage.displayState != StageDisplayState.FULL_SCREEN )
-				return;
 			if (_canCast || _preventFade) {
 				return;
 			}
