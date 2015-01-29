@@ -845,17 +845,21 @@ package com.longtailvideo.jwplayer.view {
 
 			showControls();
 			startFader();
-			if ((evt.keyCode == 32 || evt.keyCode == 13) && evt.ctrlKey) {	// space || Enter with ctrl
-				if (_instreamMode) {
-					_instreamControls.controlbar.dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));
-				} else {
-					if (_player.state == PlayerState.PLAYING || _player.state == PlayerState.BUFFERING) {
-						dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PAUSE));
+			/** 在全屏模式下才能控制播放 **/
+			if ( RootReference.stage.displayState == StageDisplayState.FULL_SCREEN )
+			{
+				if (evt.keyCode == 32 || evt.keyCode == 13) {	// space || Enter
+					if (_instreamMode) {
+						_instreamControls.controlbar.dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));
 					} else {
-						dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));
+						if (_player.state == PlayerState.PLAYING || _player.state == PlayerState.BUFFERING) {
+							dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PAUSE));
+						} else {
+							dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));
+						}
 					}
 				}
-			}
+			}			
 			if (evt.keyCode == 39) {	// Right 
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_SEEK, _currPos + 5));
 			}
@@ -898,6 +902,8 @@ package com.longtailvideo.jwplayer.view {
 		}
 		
 		private function hideControls():void {
+			if ( RootReference.stage.displayState != StageDisplayState.FULL_SCREEN )
+				return;
 			if (_canCast || _preventFade) {
 				return;
 			}
