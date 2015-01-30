@@ -18,7 +18,7 @@
 	<fx:Style source="myLivePlayer.css" />
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
-		<fx:String id='version'>1.0.0.1</fx:String>
+		<fx:String id='version'>2.1.0.30</fx:String>
 		
 		<s:Fade id="fadeOut" duration="3000" alphaFrom="1" alphaTo="0" />
 		<s:Fade id="fadeIn" duration="1000" alphaFrom="0" alphaTo="1" />
@@ -52,7 +52,7 @@
 			/** 主播房间url **/
 			private var _sUrl:String;
 			/** 隐藏进入房间标签计时器 **/
-			private var _entryBtnHideTimer:Timer = new Timer(2000, 1);
+			private var _entryBtnHideTimer:Timer = new Timer(1000, 1);
 			/** 获取在online状态计时器 **/
 			private var _onlineStateTimer:Timer = new Timer(1000, 1);
 			/** room id **/
@@ -272,8 +272,11 @@
 			 * **/
 			protected function entryBtn_clickHandler(event:MouseEvent):void
 			{
-				var request:URLRequest = new URLRequest(_sUrl);  
-				navigateToURL(request, "_blank"); 
+				if (null != _sUrl)
+				{
+					var request:URLRequest = new URLRequest(_sUrl);  
+					navigateToURL(request, "_blank");	
+				} 
 			}
 			
 			/**
