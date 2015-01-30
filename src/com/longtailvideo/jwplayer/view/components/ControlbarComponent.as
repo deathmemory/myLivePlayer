@@ -6,6 +6,7 @@ package com.longtailvideo.jwplayer.view.components {
 	import com.longtailvideo.jwplayer.events.PlayerStateEvent;
 	import com.longtailvideo.jwplayer.events.PlaylistEvent;
 	import com.longtailvideo.jwplayer.events.ViewEvent;
+    import com.longtailvideo.jwplayer.events.TrackEvent;
 	import com.longtailvideo.jwplayer.model.PlaylistItem;
 	import com.longtailvideo.jwplayer.parsers.SRT;
 	import com.longtailvideo.jwplayer.player.IPlayer;
@@ -109,7 +110,7 @@ package com.longtailvideo.jwplayer.view.components {
 		protected var _layoutManager:ControlbarLayoutManager;
 		protected var _width:Number;
 		protected var _height:Number;
-		protected var _timeSlider:Slider;
+        protected var _timeSlider:TimeSlider;
 		protected var _timeAlt:TextField;
 		protected var _volSliderV:Slider;
 		protected var _volSliderH:Slider;
@@ -125,14 +126,12 @@ package com.longtailvideo.jwplayer.view.components {
 		protected var _lastPos:Number = 0;
 		protected var _lastDur:Number = 0;
 		protected var _dispWidth:Number = -1;
-		protected var _smallPlayer:Boolean = false;
 		protected var _mouseOverButton:Boolean = false;
-		protected var _numDividers:Number = -1;
 		protected var _divIndex:Number = 0;
 		protected var _bgColorSheet:Sprite;
-		public var _altMask:Sprite;
+        protected var _altMask:Sprite;
 		protected var _liveMode:Boolean = false;
-		private var _vttLoader:AssetLoader;
+        protected var _vttLoader:AssetLoader;
 		protected var animations:Animations;
 		protected var _fadingOut:Number;
 		protected var _instreamMode:Boolean;
@@ -156,7 +155,7 @@ package com.longtailvideo.jwplayer.view.components {
 			setupOverlays();
 			addEventListeners();
 			updateVolumeSlider();
-			setTime(0, 0);
+            updatePositionAndDurationText();
 			_vttLoader = new AssetLoader();
 			_vttLoader.addEventListener(Event.COMPLETE, loadComplete);
 			_vttLoader.addEventListener(ErrorEvent.ERROR, loadError);
@@ -187,8 +186,8 @@ package com.longtailvideo.jwplayer.view.components {
 			player.addEventListener(MediaEvent.JWPLAYER_MEDIA_LEVEL_CHANGED, levelChanged);
 			player.addEventListener(CaptionsEvent.JWPLAYER_CAPTIONS_LIST, captionsHandler);
 			player.addEventListener(CaptionsEvent.JWPLAYER_CAPTIONS_CHANGED, captionChanged);
-			player.addEventListener(MediaEvent.JWPLAYER_AUDIO_TRACKS, tracksHandler);
-			player.addEventListener(MediaEvent.JWPLAYER_AUDIO_TRACKS_CHANGED, tracksChanged);
+			player.addEventListener(TrackEvent.JWPLAYER_AUDIO_TRACKS, tracksHandler);
+			player.addEventListener(TrackEvent.JWPLAYER_AUDIO_TRACK_CHANGED, trackChanged);
 			player.addEventListener(CastEvent.JWPLAYER_CAST_AVAILABLE, _castAvailable);
 
 		}
@@ -204,14 +203,15 @@ package com.longtailvideo.jwplayer.view.components {
 			if (!_instreamMode) {
 				_liveMode = false;
 				if (_timeSlider) {
-					(_timeSlider as TimeSlider).removeCues();
+					_timeSlider.removeCues();
+                    setPositionAndDuration(0,0);
 					_timeSlider.reset();
 					var item:PlaylistItem = player.playlist.currentItem;
 					var setThumbs:Boolean = false;
 					if (item.tracks.length > 0) {
 						for each(var track:Object in item.tracks) {
 							if (!setThumbs && track.file && track.kind is String && String(track.kind).toLowerCase() == "thumbnails") {
-								(_timeSlider as TimeSlider).setThumbs(track.file);
+                                _timeSlider.setThumbs(track.file);
 								setThumbs = true;
 							}
 							if (track.file && track.kind is String && String(track.kind).toLowerCase() == "chapters") {
@@ -219,11 +219,7 @@ package com.longtailvideo.jwplayer.view.components {
 							}
 						}
 					}
-					if (!setThumbs) {
-						(_timeSlider as TimeSlider).setThumbs();
-					}
 				}
-
 				updateControlbarState();
 			}
 		}
@@ -252,46 +248,6 @@ package com.longtailvideo.jwplayer.view.components {
 			updateControlbarState();
 		}
 
-
-		/*
-		private function parseStructuredLayout(structuredLayout:Object):String {
-			var layoutString:String = "";
-			getTextField('elapsed').visible = false;
-			getTextField('duration').visible = false;
-			for each (var position:String in ['left','center','right']) {
-				layoutString += "[";
-				var layout:Array = structuredLayout[position] as Array;
-				if (layout) {
-					var lastWasDivider:Boolean = true;
-					for each (var item:Object in layout) {
-						if (item['type'] == "divider") {
-							if (item['element']) {
-								layoutString += "<" + item['element'] + ">";
-								if (!_dividerElements[item['element']]) {
-									_dividerElements[item['element']] = setupDivider(item['element']);
-								}
-							} else if (item['width'] > 0) {
-								layoutString += "<"+item['width']+">";
-							} else {
-								layoutString += "|";
-							}
-							lastWasDivider = true;
-						} else {
-							if (item['type'] == "text") {
-								getTextField(item['name']).visible = true;
-							}
-							if (!lastWasDivider) layoutString += " ";
-							layoutString += item['name'];
-							lastWasDivider = false;
-						}
-					}
-				}
-				layoutString += "]";
-			}
-			return layoutString;
-		}
-		*/
-
 		private function updateControlbarState():void {
 			var newLayout:String = _defaultLayout;
 
@@ -300,12 +256,12 @@ package com.longtailvideo.jwplayer.view.components {
 				newLayout = newLayout.replace('play', 'pause');
 				hideButton('play');
 			} else if (_currentState == PlayerState.IDLE) {
-				if (_timeSlider) {
+                if(_timeSlider) {
 					_timeSlider.reset();
-					_timeSlider.thumbVisible = false;
 				}
+                setPositionAndDuration(0,0);
 				if (_player.playlist.currentItem) {
-					setTime(0, _player.playlist.currentItem.duration);
+                    _lastDur = _player.playlist.currentItem.duration;
 				}
 				hideButton('pause');
 			} else {
@@ -315,7 +271,7 @@ package com.longtailvideo.jwplayer.view.components {
 			// handle playlist
 			var multiList:Boolean = player.playlist.length > 1;
 			var playlistShowing:Boolean = (!player.config.fullscreen && player.config.playlistposition.toLowerCase() !== "none");
-			if (playlistShowing || !multiList) {
+			if (playlistShowing || !multiList || _instreamMode) {
 				newLayout = newLayout.replace(/(prev next)/g, "");
 				hideButton('prev');
 				hideButton('next');
@@ -333,8 +289,10 @@ package com.longtailvideo.jwplayer.view.components {
 			if (_casting) {
 				newLayout = newLayout.replace("cast", "casting");
 				newLayout = newLayout.replace("fullscreen", "");
+                newLayout = newLayout.replace(/hd/g, "");
+                hideButton('hd');
 				hideButton("cast");
-				hideButton("fullscreen", false);
+				showButton("fullscreen");
 				hideButton("normalscreen");
 			} else {
 				hideButton("casting");
@@ -345,7 +303,7 @@ package com.longtailvideo.jwplayer.view.components {
 				newLayout = newLayout.replace("fullscreen", "normalscreen");
 				hideButton("fullscreen");
 				newLayout = newLayout.replace("cast", "");
-				hideButton("casting");
+                hideButton("cast");
 			} else {
 				hideButton("normalscreen");
 			}
@@ -377,32 +335,30 @@ package com.longtailvideo.jwplayer.view.components {
 
 			// handle time slider
 			if (_timeSlider) {
-				if (_timeAlt && _timeAlt.text || _liveMode) {
-					_timeSlider.visible = false;
-					hideButton('alt', false);
-					hideButton('elapsed', true);
-					hideButton('duration', true);
+                _timeSlider.visible = !(_timeAlt && _timeAlt.text || _liveMode);
+                if (!_timeSlider.visible) {
+					showButton('alt');
+					hideButton('elapsed');
+					hideButton('duration');
 					newLayout = newLayout.replace("duration","");
 					newLayout = newLayout.replace("elapsed","");
-					_timeSlider.visible = false;
 				} else {
-					hideButton('alt', true);
-					_timeSlider.visible = true;
+					hideButton('alt');
 				}
 			}
 			//  more fullscreen
 			if (_audioMode || _hideFullscreen || _player.config.fullscreen && newLayout) {
 				newLayout = newLayout.replace("fullscreen", "");
-				hideButton('fullscreen', true);
+				hideButton('fullscreen');
 			} else {
-				hideButton('fullscreen', false);
+				showButton('fullscreen');
 			}
 			// volume
 			if (_audioMode || _instreamMode) {
-				hideButton('volumeH', false)
+				showButton('volumeH')
 			} else {
 				newLayout = newLayout.replace("volumeH", "");
-				hideButton('volumeH', true);
+				hideButton('volumeH');
 			}
 
 			_currentLayout = removeInactive(newLayout);
@@ -433,41 +389,53 @@ package com.longtailvideo.jwplayer.view.components {
 
 		public function setInstreamMode(mode:Boolean):void {
 			_instreamMode = mode;
+			redraw();
 		}
+
+        private function get isLive():Boolean {
+            return _lastDur <= 0 && !isDvr;
+        }
+
+        private function get isDvr():Boolean {
+            return _lastDur <= -60;
+        }
+
+        private function setPositionAndDuration(position:Number, duration:Number):void {
+            var min:Number = Math.min(0, duration);
+            var max:Number = Math.max(0, duration);
+            _lastPos = Math.min(Math.max(position, min), max);
+            _lastDur = duration;
+        }
 
 
 		private function mediaHandler(evt:MediaEvent):void {
-			var scrubber:Slider = _timeSlider;
 			switch (evt.type) {
 				case MediaEvent.JWPLAYER_MEDIA_BUFFER:
 				case MediaEvent.JWPLAYER_MEDIA_TIME:
-					_lastPos = evt.position;
-					_lastDur = evt.duration;
-					if (evt.duration == -1 && evt.type == MediaEvent.JWPLAYER_MEDIA_TIME) {
+                    setPositionAndDuration(evt.position, evt.duration);
+                    if (isLive && evt.type == MediaEvent.JWPLAYER_MEDIA_TIME) {
 						if (!_instreamMode) {
 							setText(player.playlist.currentItem.title || "Live broadcast");
 						}
 					} else {
-						if (scrubber) {
-							if (evt.duration <= -60) {
-								scrubber.setProgress((evt.duration - evt.position) / evt.duration * 100);
+                        if (_timeSlider) {
+                            if (isDvr) {
+                                _timeSlider.setProgress((_lastDur - _lastPos) / _lastDur * 100);
 							}
 							else {
-								scrubber.setProgress(evt.position / evt.duration * 100);
+                                _timeSlider.setProgress(_lastPos / _lastDur * 100);
 							}
-							scrubber.thumbVisible = (evt.duration > 0 || evt.duration <= -60);
+                            _timeSlider.thumbVisible = !isLive;
 							if (evt.bufferPercent > 0) {
-								var offsetPercent:Number = (evt.offset / evt.duration) * 100;
-								scrubber.setBuffer(evt.bufferPercent / (1-offsetPercent/100), offsetPercent);
-							}
+                                var offsetPercent:Number = (evt.offset / _lastDur) * 100;
+                                _timeSlider.setBuffer(evt.bufferPercent / (1-offsetPercent/100), offsetPercent);
 						}
-						var timeSlider:TimeSlider = getSlider('time') as TimeSlider;
-						if (timeSlider) {
-							timeSlider.setDuration(evt.duration);
-							timeSlider.live = (evt.duration <= 0 && evt.duration > -60);
+
+                            _timeSlider.setDuration(_lastDur);
+                            _timeSlider.live = isLive;
 						}
-						if (evt.position > 0 || evt.duration <= -60) {
-							setTime(evt.position, evt.duration);
+                        if(!isLive) {
+                            updatePositionAndDurationText();
 						}
 						if (!_instreamMode) {
 							setText();
@@ -475,8 +443,7 @@ package com.longtailvideo.jwplayer.view.components {
 					}
 					break;
 				default:
-					scrubber.reset();
-					break;
+                    throw new Error("unknown event" + evt);
 			}
 		}
 
@@ -497,45 +464,47 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 
 
-		private function setTime(position:Number, duration:Number):void {
-			if (position < 0 && duration > -60) {
-				position = 0;
-			}
-			if (duration < 0 && duration > -60) {
-				duration = 0;
+        private function updatePositionAndDurationText():void {
+            var elapsedString:String;
+            var durationString:String;
+
+            if (isSmallPlayer) {
+                elapsedString = "";
+                durationString = "";
+            } else if(isDvr) {
+                elapsedString = "-"+ Strings.digits(-_lastDur);
+                durationString = "Live";
+            } else if (isLive) {
+                elapsedString = Strings.digits(0);
+                durationString = Strings.digits(0);
+            } else {
+                elapsedString = Strings.digits(_lastPos);
+                durationString = Strings.digits(_lastDur);
 			}
 
 			var redrawNeeded:Boolean = false;
 
-			var newElapsed:String = Strings.digits(position);
-			var elapsedText:TextField = getTextField('elapsed');
-			var newDuration:String = Strings.digits(duration);
-			var durationField:TextField = getTextField('duration');
+            var elapsedTextField:TextField = getTextField('elapsed');
+            var durationTextField:TextField = getTextField('duration');
 
-			if (duration <= -60) {
-				newElapsed = "-"+ Strings.digits((-1*duration));
-				newDuration = "Live";
+            if (elapsedTextField) {
+                if (elapsedString.length != elapsedTextField.text.length) {
+                    redrawNeeded = true;
+			}
+                elapsedTextField.text = elapsedString;
 			}
 
-			if (_dispWidth > 0 && _dispWidth < 320) {
-				newElapsed = "";
-				newDuration = "";
+
+            if (durationTextField) {
+                if (durationString.length != durationTextField.text.length) {
+                    redrawNeeded = true;
+                }
+                durationTextField.text = durationString;
 			}
 
-			if (elapsedText) {
-				if (newElapsed.length != elapsedText.text.length) redrawNeeded = true;
-				elapsedText.text = newElapsed;
-			}
-
-			if (durationField) {
-				if (newDuration.length != durationField.text.length) redrawNeeded = true;
-				durationField.text = newDuration;
-			}
-
-			var timeSlider:TimeSlider = getSlider('time') as TimeSlider;
-			if (timeSlider) {
-				timeSlider.setDuration(duration);
-				timeSlider.live = (duration <= 0 && duration > -60);
+            if (_timeSlider) {
+                _timeSlider.setDuration(_lastDur);
+                _timeSlider.live = isLive;
 			}
 
 			if (redrawNeeded) {
@@ -609,7 +578,7 @@ package com.longtailvideo.jwplayer.view.components {
 			addTextField('alt');
 			_timeAlt = getTextField('alt');
 			addSlider('time', ViewEvent.JWPLAYER_VIEW_CLICK, seekHandler);
-			_timeSlider = getSlider('time');
+            _timeSlider = getSlider('time') as TimeSlider;
 			addSlider('volumeV', ViewEvent.JWPLAYER_VIEW_CLICK, volumeHandler, true);
 			addSlider('volumeH', ViewEvent.JWPLAYER_VIEW_CLICK, volumeHandler, false);
 			_volSliderV = getSlider('volumeV');
@@ -806,7 +775,7 @@ package com.longtailvideo.jwplayer.view.components {
 			}
 			updateControlbarState();
 		}
-		private function tracksHandler(evt:MediaEvent):void {
+		private function tracksHandler(evt:TrackEvent):void {
 			_tracks = evt.tracks;
 			if (_tracks.length > 1) {
 				_trackOverlay.clearOptions();
@@ -814,13 +783,13 @@ package com.longtailvideo.jwplayer.view.components {
 					_trackOverlay.addOption(_tracks[j].name, j);
 				}
 			}
-			tracksChanged(evt);
+			trackChanged(evt);
 		}
 		
-		private function tracksChanged(evt:MediaEvent):void {
-			_currentTrack = evt.currentAudioTrack;
+		private function trackChanged(evt:TrackEvent):void {
+			_currentTrack = evt.currentTrack;
 			if (_tracks.length > 1) {
-				_trackOverlay.setActive(evt.currentAudioTrack);
+				_trackOverlay.setActive(evt.currentTrack);
 			}
 			updateControlbarState();
 		}
@@ -830,8 +799,9 @@ package com.longtailvideo.jwplayer.view.components {
 			var button:ComponentButton = new ComponentButton();
 			button.name = name;
 
+			// If no overIcon is defined, only the outIcon will ever appear.  This allows the CC and HD buttons to be displayed as toggles based on the logic in captionChanged and levelChanged.
 			var outIcon:DisplayObject  = getSkinElement(name + "Button");
-			var overIcon:DisplayObject = getSkinElement(name + "ButtonOver") || outIcon;
+			var overIcon:DisplayObject = getSkinElement(name + "ButtonOver");
 
 			button.setOutIcon(outIcon);
 			button.setOverIcon(overIcon);
@@ -964,12 +934,14 @@ package com.longtailvideo.jwplayer.view.components {
 				duration = _casting ? _lastDur : player.playlist.currentItem.duration;
 			} catch (err:Error) {
 			}
-			var percent:Number = Math.round(duration * evt.data);
+			var percent:Number = duration * evt.data;
 			dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_SEEK, percent));
+            if(_timeSlider) {
 			_timeSlider.live = (duration <= 0);
 		}
+        }
 
-		private function addButtonDisplayObject(icon:ComponentButton, name:String, handler:Function=null):MovieClip {
+		private function addButtonDisplayObject(icon:ComponentButton, name:String):MovieClip {
 			var acs:AccessibilityProperties = new AccessibilityProperties();
 			acs.name = name;
 			if (icon) {
@@ -983,6 +955,10 @@ package com.longtailvideo.jwplayer.view.components {
 
 
 
+        private function showButton(name:String):void {
+            hideButton(name, false);
+        }
+
 		private function hideButton(name:String, state:Boolean = true):void {
 			var button:DisplayObject = _buttons[name];
 			if (button && contains(button)) {
@@ -992,8 +968,8 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 
 		public function getButton(buttonName:String):DisplayObject {
-			if (buttonName == "divider") {
-				if (_divIndex + 1> _dividers.length ) {
+			if (buttonName === "divider") {
+				if (_divIndex > _dividers.length - 1) {
 					_dividers.push(getSkinElement(buttonName));
 				}
 				return _dividers[_divIndex++];
@@ -1048,19 +1024,21 @@ package com.longtailvideo.jwplayer.view.components {
 
 			if (_fullscreen != _player.config.fullscreen) {
 				_fullscreen = _player.config.fullscreen;
-				//stopFader();
 			}
 
 			stateHandler();
 		}
 
+        private function get isSmallPlayer():Boolean {
+            return _dispWidth > 0 && _dispWidth < 320;
+        }
+
 
 		private function redraw():void {
-			_smallPlayer = (_dispWidth > 0 && _dispWidth < 320);
-			if (_smallPlayer) {
+            if (isSmallPlayer) {
 				_currentLayout = _currentLayout.replace(/duration|elapsed/g, '');
 			}
-			setTime(_lastPos, _lastDur);
+            updatePositionAndDurationText();
 
 			clearDividers();
 			addDividers();
@@ -1098,7 +1076,9 @@ package com.longtailvideo.jwplayer.view.components {
 			hideHdOverlay();
 			hideCcOverlay();
 			hideTrackOverlay();
-			if (_timeSlider is TimeSlider) (_timeSlider as TimeSlider).hide();
+            if (_timeSlider) {
+                _timeSlider.hide();
+            }
 		}
 
 		private function clearDividers():void {
@@ -1114,33 +1094,10 @@ package com.longtailvideo.jwplayer.view.components {
 			return player.config.mute || (player.config.volume == 0);
 		}
 
+		
 		private function addDividers():void {
-
-			var rightDivide:Array = ["play","pause","prev","next"];
-			var leftDivide:Array = isMuted ? ["hd","cc","unmute","cast","fullscreen"] : ["hd","cc","track", "mute","cast","fullscreen"];
-
-			_numDividers = 0;
 			//make sure we don't add dividers a layout that already has dividers
-			var div:RegExp = /\|/g;
-			_currentLayout = _currentLayout.replace(div,"");
-
-			var i:uint;
-			var elem:String;
-			for (i=rightDivide.length; i--;) {
-				elem = rightDivide[i];
-				if (_currentLayout.indexOf(elem) > -1) {
-					_currentLayout = _currentLayout.replace(elem, elem+"|");
-					_numDividers++;
-				}
-			}
-
-			for (i=leftDivide.length; i--;) {
-				elem = leftDivide[i];
-				if (_currentLayout.indexOf(elem) > -1) {
-					_currentLayout = _currentLayout.replace(elem, "|" + elem);
-					_numDividers++;
-				}
-			}
+            _currentLayout = _currentLayout.replace(/\|?\s+|\|/g, '|');
 		}
 
 		private function alignTextFields():void {
@@ -1163,7 +1120,7 @@ package com.longtailvideo.jwplayer.view.components {
 
 
 		public function get layout():String {
-			return _currentLayout.replace(/\|/g, "<divider>");
+			return _currentLayout.replace(/\|/g, '<divider>');
 		}
 
 		override public function show():void {
@@ -1177,8 +1134,12 @@ package com.longtailvideo.jwplayer.view.components {
 		public function audioMode(state:Boolean):void {
 			_audioMode = state;
 			stateHandler();
-			if (_timeSlider) (_timeSlider as TimeSlider).audioMode(state);
-			if (state) show();
+            if (_timeSlider) {
+                _timeSlider.audioMode(state);
+            }
+            if (state) {
+                show();
+            }
 		}
 
 		public function hideFullscreen(state:Boolean):void {
@@ -1217,7 +1178,9 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 
 		public function setCues(cues:Array):void {
-			if (_timeSlider) (_timeSlider as TimeSlider).setCues(cues);
+            if (_timeSlider) {
+                _timeSlider.setCues(cues);
+            }
 		}
 
 	}

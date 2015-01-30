@@ -7,6 +7,7 @@ package com.longtailvideo.jwplayer.player {
 	import com.longtailvideo.jwplayer.events.PlayerEvent;
 	import com.longtailvideo.jwplayer.events.PlayerStateEvent;
 	import com.longtailvideo.jwplayer.events.PlaylistEvent;
+	import com.longtailvideo.jwplayer.events.TrackEvent;
 	import com.longtailvideo.jwplayer.events.ViewEvent;
 	import com.longtailvideo.jwplayer.plugins.AbstractPlugin;
 	import com.longtailvideo.jwplayer.plugins.IPlugin;
@@ -52,7 +53,9 @@ package com.longtailvideo.jwplayer.player {
 				try {
 					ExternalInterface.call(functionName, args);
 				} catch (error:Error) {
-					trace('js error:', error.message);
+					//CONFIG::debugging {
+						trace('js error:', error.message);
+					//}
 				}
 				javaScriptEventLoop = null;
 			}
@@ -71,6 +74,22 @@ package com.longtailvideo.jwplayer.player {
 			
 			_player.addGlobalListener(queueEvents);
 		}
+
+        public static function setupError(evt:PlayerEvent):void {
+            var _setupError:Function = function(timerEvent:TimerEvent):void {
+                timerEvent.target.delay = 20;
+                if (ExternalInterface.available) {
+                    timerEvent.target.stop();
+                    // dispatch the translated event to JavaScript
+                    _listeners = {};
+                    _listeners[evt.type] = ['function(evt){jwplayer("'+evt.id+'").dispatchEvent(evt.type,evt)}'];
+                    listenerCallback(evt);
+                }
+            };
+            var timer:Timer = new Timer(1, 5);
+            timer.addEventListener(TimerEvent.TIMER_COMPLETE, _setupError);
+            timer.start();
+        }
 		
 		/** Delay the response to PlayerReady to allow the external interface to initialize in some browsers **/
 		private static function playerReady(evt:PlayerEvent):void {
@@ -89,13 +108,9 @@ package com.longtailvideo.jwplayer.player {
 					clearQueuedEvents();
 				}
 			};
-			if (ExternalInterface.available) {
-				ready();
-			} else {
-				var timer:Timer = new Timer(0, 5);
-				timer.addEventListener(TimerEvent.TIMER_COMPLETE, ready);
-				timer.start();
-			}
+			var timer:Timer = new Timer(0, 5);
+			timer.addEventListener(TimerEvent.TIMER_COMPLETE, ready);
+			timer.start();
 		}
 
 		private static function queueEvents(evt:Event):void {
@@ -268,16 +283,20 @@ package com.longtailvideo.jwplayer.player {
 				args = listenerCallbackCaptions(evt as CaptionsEvent);
 			else if (evt is MediaEvent)
 				args = listenerCallbackMedia(evt as MediaEvent);
+            else if (evt is TrackEvent)
+                args = listenerCallbackTrack(evt as TrackEvent);
 			else if (evt is PlayerStateEvent)
 				args = listenerCallbackState(evt as PlayerStateEvent);
 			else if (evt is PlaylistEvent)
 				args = listenerCallbackPlaylist(evt as PlaylistEvent);
+			else if (evt is CastEvent) {
+				args.available = (evt as CastEvent).available;
+				args.active = (evt as CastEvent).active;
+			}
 			else if (type == ViewEvent.JWPLAYER_CONTROLS)
 				args.controls = (evt as ViewEvent).data;
 			else if (type == ViewEvent.JWPLAYER_VIEW_TAB_FOCUS)
 				args.hasFocus = (evt as ViewEvent).data;
-			else if (type ==  CastEvent.JWPLAYER_CAST_AVAILABLE) 
-				args.available = (evt as CastEvent).available;
 			else if (evt is ViewEvent && (evt as ViewEvent).data != null)
 				args.data = JavascriptSerialization.stripDots((evt as ViewEvent).data);
 			else if (evt is PlayerEvent) {
@@ -314,33 +333,19 @@ package com.longtailvideo.jwplayer.player {
 			
 		}
 		
-		private static function merge(obj1:Object, obj2:Object):Object {
-			var newObj:Object = {};
-			
-			for (var key:String in obj1) {
-				newObj[key] = obj1[key];
-			}
-			
-			for (key in obj2) {
-				newObj[key] = obj2[key];
-			}
-			
-			return newObj;
-		}
-		
 		private static function listenerCallbackMedia(evt:MediaEvent):Object {
 			var returnObj:Object = {};
 
 			if (evt.bufferPercent >= 0) 		returnObj.bufferPercent = evt.bufferPercent;
 			if (evt.duration >= 0)		 		returnObj.duration = evt.duration;
 			if (evt.message)					returnObj.message = evt.message;
-			if (evt.metadata != null)	 		returnObj.metadata = JavascriptSerialization.stripDots(evt.metadata);
+			if (evt.metadata != null) {
+                returnObj.metadata = JavascriptSerialization.stripDots(evt.metadata);
+            }
 			if (evt.offset > 0)					returnObj.offset = evt.offset;
 			if (evt.position >= 0)				returnObj.position = evt.position;
 			if (evt.currentQuality >= 0)		returnObj.currentQuality = evt.currentQuality;
-			if (evt.currentAudioTrack >= 0)		returnObj.currentAudioTrack = evt.currentAudioTrack;
-			if (evt.levels)						returnObj.levels = JavascriptSerialization.stripDots(evt.levels);
-			if (evt.tracks)						returnObj.tracks = JavascriptSerialization.stripDots(evt.tracks);
+			if (evt.levels)						returnObj.levels = evt.levels;
 			if (evt.type == MediaEvent.JWPLAYER_MEDIA_MUTE) {
 				returnObj.mute = evt.mute;
 			}
@@ -350,6 +355,13 @@ package com.longtailvideo.jwplayer.player {
 			return returnObj;
 		}
 
+        private static function listenerCallbackTrack(evt:TrackEvent):Object {
+            return {
+                tracks: evt.tracks,
+                currentTrack: evt.currentTrack
+            };
+        }
+
 		private static function listenerCallbackCaptions(evt:CaptionsEvent):Object {
 			var returnObj:Object = {};
 
@@ -357,7 +369,7 @@ package com.longtailvideo.jwplayer.player {
 				returnObj.track = evt.currentTrack;
 			}
 			if (evt.tracks) {
-				returnObj.tracks = JavascriptSerialization.stripDots(evt.tracks);
+				returnObj.tracks = evt.tracks;
 			}
 			return returnObj;
 		}
@@ -661,8 +673,8 @@ package com.longtailvideo.jwplayer.player {
 			return _player.getControls();
 		}
 
-		private static function js_getSafeRegion():Object {
-			return JavascriptSerialization.rectangleToObject(_player.getSafeRegion());
+		private static function js_getSafeRegion(includeCB:Boolean = true):Object {
+			return JavascriptSerialization.rectangleToObject(_player.getSafeRegion(includeCB));
 		}
 		
 		private static function js_setControls(state:Boolean):void {

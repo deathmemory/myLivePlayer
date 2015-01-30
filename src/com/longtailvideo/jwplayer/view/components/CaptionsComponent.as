@@ -4,7 +4,9 @@ package com.longtailvideo.jwplayer.view.components {
 	import com.longtailvideo.jwplayer.events.MediaEvent;
 	import com.longtailvideo.jwplayer.events.PlayerStateEvent;
 	import com.longtailvideo.jwplayer.events.PlaylistEvent;
-	import com.longtailvideo.jwplayer.parsers.DFXP;
+    import com.longtailvideo.jwplayer.events.CaptionsParsedEvent;
+    import com.longtailvideo.jwplayer.parsers.DFXP;
+    import com.longtailvideo.jwplayer.events.TrackEvent;
 	import com.longtailvideo.jwplayer.parsers.ISO639;
 	import com.longtailvideo.jwplayer.parsers.SRT;
 	import com.longtailvideo.jwplayer.player.IPlayer;
@@ -24,9 +26,7 @@ package com.longtailvideo.jwplayer.view.components {
 	
 	/** Plugin for playing closed captions with a video. **/
 	public class CaptionsComponent extends Sprite implements IPlayerComponent {
-		
-		/** Cookie object for storing track prefs. **/
-		//private var _cookie:SharedObject;
+
 		/** Default style properties. **/
 		private var _defaults:Object = {
 			color: '#FFFFFF',
@@ -50,7 +50,7 @@ package com.longtailvideo.jwplayer.view.components {
 			leading: 5,
 			textAlign: 'center',
 			textDecoration: 'none'
-		}
+		};
 		
 		/** Currently active playlist item. **/
 		private var _item:Object;
@@ -62,8 +62,6 @@ package com.longtailvideo.jwplayer.view.components {
 		private var _renderer:CaptionRenderer;
 		/** Current player state. **/
 		private var _state:String;
-		/** Map with style properties loaded by DFXP. **/
-		private var _styles:Object;
 		/** Currently active track. **/
 		private var _track:Number = 0;
 		/** Current listing of tracks. **/
@@ -72,12 +70,12 @@ package com.longtailvideo.jwplayer.view.components {
 		private var _selectedTrack:Number;
 		
 		private var _streamTrack:Number = -1;
-		
+
+        private var _captionHashes:Object = {};
 		
 		/** Constructor; inits the parser, selector and renderer. **/
 		public function CaptionsComponent(player:IPlayer) {
-			
-			//_cookie = SharedObject.getLocal('com.jeroenwijering','/');
+
 			_loader = new URLLoader();
 			_loader.addEventListener(Event.COMPLETE, _loaderHandler);
 			_loader.addEventListener(IOErrorEvent.IO_ERROR, _errorHandler);
@@ -90,6 +88,9 @@ package com.longtailvideo.jwplayer.view.components {
 			_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_META,_metaHandler);
 			_player.addEventListener(PlayerStateEvent.JWPLAYER_PLAYER_STATE,_stateHandler);
 			_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME,_timeHandler);
+            _player.addEventListener(TrackEvent.JWPLAYER_SUBTITLES_TRACKS, _subtitlesTracksHandler);
+            _player.addEventListener(TrackEvent.JWPLAYER_SUBTITLES_TRACK_CHANGED, _subtitlesTrackChangedHandler);
+            _player.addEventListener(CaptionsParsedEvent.CAPTIONS_PARSED, _captionsParsedEvent);
 			
 			var config:Object = _player.config.captions;
 			
@@ -141,13 +142,95 @@ package com.longtailvideo.jwplayer.view.components {
 		private function _errorHandler(event:ErrorEvent):void {
 			Logger.log(event.text);
 		};
-		
+
+        /** Handle a list of subtitles tracks */
+        private function _subtitlesTracksHandler(event:TrackEvent):void {
+            if(event.type != TrackEvent.JWPLAYER_SUBTITLES_TRACKS) {
+                throw new Error("wrong event");
+            }
+
+            if(event.tracks != null && event.tracks.length > 0) {
+                // clear out sideloaded captions
+                _resetTrackList();
+                for(var i:int = 0; i < event.tracks.length; i++) {
+                    var name:String = event.tracks[i].name;
+                    _tracks.push({
+                        data: [],
+                        id: i,
+                        label: name
+                    });
+                    _captionHashes[name] = {};
+                }
+                _initializeCaptions();
+            }
+        }
+
+        /** Handle a subtitle track index change */
+        private function _subtitlesTrackChangedHandler(event:TrackEvent):void {
+            if (event.type != TrackEvent.JWPLAYER_SUBTITLES_TRACK_CHANGED) {
+                throw new Error("wrong event");
+            }
+
+            _renderCaptions(event.currentTrack+1);
+            _redraw();
+        }
+
+        /** Handle captions coming in from external sources **/
+        private function _captionsParsedEvent(evt:CaptionsParsedEvent):void {
+            var captions:Array = evt.captions;
+            var name:String = evt.name;
+            for(var i:int = 0; i < _tracks.length; i++) {
+                if (_tracks[i].label == name) {
+
+                    var track:Array = _tracks[i].data;
+
+                    captions.sortOn("begin", Array.NUMERIC);
+
+                    var currIdx:int = 0;
+
+                    for each (var caption:Object in captions) {
+                        if (caption.begin !== undefined) {
+                            var hash:String = caption.text + caption.begin;
+                            // Check if the same caption is already in the array
+                            if (_captionHashes[name][hash] === undefined) {
+                                for (var j:int = currIdx; j < track.length; j++) {
+                                    if (track[j].begin > caption.begin) {
+                                        if (j > 0 && track[j-1].end > caption.begin) {
+                                            caption.begin = track[j-1].end = (track[j-1].end + caption.begin) / 2;
+                                        }
+                                        if (track[j].begin < caption.end) {
+                                            track[j].begin = caption.end = (track[j].begin + caption.end) / 2;
+                                        }
+                                        currIdx = j;
+                                        break;
+                                    }
+                                    if(j+1 == track.length) {
+                                        currIdx = track.length;
+                                    }
+                                }
+                                track.splice(currIdx, 0, caption);
+                                _captionHashes[hash] = true;
+                            }
+                        }
+                    }
+                    _updateRenderer();
+                    _redraw();
+                }
+            }
+        }
+
+        private function _resetTrackList():void {
+            _track = 0;
+            _selectedTrack = 0;
+            _streamTrack = -1;
+            _tracks = new Array();
+            _renderer.setPosition(0);
+            _captionHashes = {};
+        }
+
 		/** Check playlist item for captions. **/
 		private function _itemHandler(event:PlaylistEvent):void {
-			_track = 0;
-			_streamTrack = -1;
-			_tracks = new Array();
-			_renderer.setPosition(0);
+            _resetTrackList();
 			_item = _player.playlist.currentItem;
 			if (_item)
 				var tracks:Object = _item["tracks"];
@@ -280,7 +363,7 @@ package com.longtailvideo.jwplayer.view.components {
 				} catch (e:Error) {}
 			}
 			_initializeCaptions();
-		};
+		}
 		
 		private function _initializeCaptions():void {
 			var defaultTrack:Number = 0;
@@ -316,7 +399,7 @@ package com.longtailvideo.jwplayer.view.components {
 					_renderer.visible = false;
 				}
 			}
-		};
+		}
 		
 		
 		/** Resize the captions, relatively smaller as the screen grows */
@@ -325,32 +408,37 @@ package com.longtailvideo.jwplayer.view.components {
 			_renderer.setMaxWidth(width);
 			_renderer.x = Math.round((width -_renderer.width)/2);
 			_renderer.y = Math.round(height * 0.94);
-		};
-		
+		}
+
+        /** set the counters */
+        private function _setIndex(index:Number):void {
+            if(index > 0) {
+                _track = index - 1;
+                _selectedTrack = index;
+            } else {
+                _selectedTrack = 0;
+            }
+        }
 		
 		/** Rendering the captions. **/
 		private function _renderCaptions(index:Number):void {
-			if(index > 0) {
-				_track = index - 1;
-				_selectedTrack = index;
-			} else {
-				_selectedTrack = 0;
-			}
-			
+            _setIndex(index);
+            _updateRenderer();
+        }
+
+        private function _updateRenderer():void {
 			if (_track >= _tracks.length) return;
 			
 			// Update UI
-			if(_tracks[_track].file) {
-				if(_tracks[_track].data) {
-					_renderer.setCaptions(_tracks[_track].data);
-				} else { 
-					_loader.load(new URLRequest(_tracks[_track].file));
-				}
+            if(_tracks[_track].data) {
+                _renderer.setCaptions(_tracks[_track].data);
+            } else if(_tracks[_track].file) {
+		        _loader.load(new URLRequest(_tracks[_track].file));
 			} else {
 				_renderer.setCaptions('');
 			}
 			_redraw();
-		};
+		}
 		
 		
 		/** Hide the renderer when idle. **/
@@ -360,14 +448,14 @@ package com.longtailvideo.jwplayer.view.components {
 			if(_state == PlayerState.IDLE) {
 				_renderer.setPosition(0);
 			}
-		};
+		}
 		
 		
 		/** Update the position in the video. **/
 		private function _timeHandler(event:MediaEvent):void {
 			if (event.position >= -1)
 				_renderer.setPosition(event.position);
-		};
+		}
 		
 		
 		private function _getTracks():Array {
@@ -428,7 +516,7 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 		
 		
-	};
+	}
 	
 	
 }

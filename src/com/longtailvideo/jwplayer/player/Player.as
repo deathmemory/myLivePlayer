@@ -1,5 +1,6 @@
 ﻿package com.longtailvideo.jwplayer.player {
 	import com.longtailvideo.jwplayer.controller.Controller;
+	import com.longtailvideo.jwplayer.events.CaptionsEvent;
 	import com.longtailvideo.jwplayer.events.GlobalEventDispatcher;
 	import com.longtailvideo.jwplayer.events.IGlobalEventDispatcher;
 	import com.longtailvideo.jwplayer.events.PlayerEvent;
@@ -19,6 +20,7 @@
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Rectangle;
+	import flash.system.Security;
 
 
 	/**
@@ -43,6 +45,7 @@
 		/** Player constructor **/
 		public function Player(_rt:DisplayObjectContainer) {
 			_root = _rt;
+			Security.allowDomain("*");
 			try {
 				this.addEventListener(Event.ADDED_TO_STAGE, setupPlayer);
 			} catch (err:Error) {
@@ -58,17 +61,31 @@
 		protected function setupPlayer(event:Event=null):void {
 			try {
 				this.removeEventListener(Event.ADDED_TO_STAGE, setupPlayer);
-			} catch (err:Error) {
-			}
+			} catch (err:Error) { }
 
 			new RootReference(_root);
 			_dispatcher = new GlobalEventDispatcher();
 			model = newModel();
 			view = newView(model);
+            view.addEventListener(CaptionsEvent.JWPLAYER_CAPTIONS_CHANGED, _captionsChanged);
+            view.addEventListener(CaptionsEvent.JWPLAYER_CAPTIONS_LIST, _captionsList);
 			controller = newController(model, view);
 			controller.addEventListener(PlayerEvent.JWPLAYER_READY, playerReady, false, -1);
+            controller.addEventListener(PlayerEvent.JWPLAYER_SETUP_ERROR, setupError, false, -1);
 			controller.setupPlayer();
 		}
+
+        private function _captionsChanged(evt:CaptionsEvent):void {
+            if (model.media) {
+                model.media.currentSubtitlesTrack = evt.currentTrack-1;
+            }
+        }
+
+        private function _captionsList(evt:CaptionsEvent):void {
+            if (model.media) {
+                model.media.currentSubtitlesTrack = evt.currentTrack-1;
+            }
+        }
 		
 		protected function newModel():Model {
 			return new Model();
@@ -83,8 +100,9 @@
 		} 
 		
 		protected function playerReady(evt:PlayerEvent):void {
-			// Only handle JWPLAYER_READY once
+			// Only handle Setup Events once
 			controller.removeEventListener(PlayerEvent.JWPLAYER_READY, playerReady);
+            controller.removeEventListener(PlayerEvent.JWPLAYER_SETUP_ERROR, forward);
 			SWFFocus.init(stage);
 			
 			// Initialize Javascript interface
@@ -97,14 +115,24 @@
 
 			forward(evt);
 		}
-		
+
+        protected function setupError(evt:PlayerEvent):void {
+            // Only handle Setup Events once
+            controller.removeEventListener(PlayerEvent.JWPLAYER_READY, playerReady);
+            controller.removeEventListener(PlayerEvent.JWPLAYER_SETUP_ERROR, forward);
+
+            // Send Setup Error to browser
+            JavascriptAPI.setupError(evt);
+        }
 		
 		/**
 		 * Forwards all MVC events to interested listeners.
 		 * @param evt
 		 */
 		protected function forward(evt:PlayerEvent):void {
-			Logger.log(evt.toString(), evt.type);
+            if (model.config.debug) {
+                Logger.logEvent(evt);
+            }
 			dispatchEvent(evt);
 		}
 		
@@ -328,8 +356,8 @@
 			return model.config.controls;
 		}
 
-		public function getSafeRegion():Rectangle {
-			return view.getSafeRegion();
+		public function getSafeRegion(includeCB:Boolean = true):Rectangle {
+			return view.getSafeRegion(includeCB);
 		}
 
 		public function setControls(state:Boolean):void {
@@ -406,6 +434,5 @@
 		public function setCues(cues:Array):void {
 			view.setCues(cues);
 		}
-		
 	}
 }

@@ -44,18 +44,23 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 		
 		protected function addCue(pos:*, text:String):void {
-			var cueElem:Sprite = addElement("cue", true);
+            // Initially cues are hidden until we know the videos duration
+            var cueElem:Sprite = addElement("cue", false);
+
 			var cue:Object = {
 				position: pos,
 				text: text,
 				element: cueElem
 			};
+
 			_cues.push(cue);
+
 			cueElem.addEventListener(MouseEvent.MOUSE_OVER, function():void { _activeCue = cue; });
 			cueElem.addEventListener(MouseEvent.MOUSE_OUT, function():void { _activeCue = null; });
 			cueElem.addEventListener(MouseEvent.CLICK, cueClickHandler);
 			cueElem.addEventListener(MouseEvent.MOUSE_MOVE, moveHandler);
-			positionCues();
+
+            positionCue(cue);
 		}
 		
 		protected function cueClickHandler(evt:MouseEvent):void {
@@ -70,11 +75,13 @@ package com.longtailvideo.jwplayer.view.components {
 			}
 		}
 
+        private function positionCue(cue:Object, ...rest):void {
+            cue.element.x = (cuePosition(cue) / _duration) * _width;
+            cue.element.visible = _duration > 0;
+        }
+
 		protected function positionCues():void {
-			for each (var cue:Object in _cues) {
-				cue.element.x = (cuePosition(cue) / _duration) * _width;
-			}
-			
+            _cues.forEach(positionCue);
 		}
 		
 		public override function resize(width:Number, height:Number):void {
@@ -83,8 +90,11 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 		
 		public function setDuration(d:Number):void {
-			_duration = d;
-			positionCues();
+			
+			if (_duration != d && d > 0) {
+				_duration = d;
+				positionCues();
+			}
 		}
 		
 		private function overHandler(evt:MouseEvent):void {
@@ -161,6 +171,16 @@ package com.longtailvideo.jwplayer.view.components {
 		public function hide():void {
 			_tooltip.hide();
 		}
-		
+
+        /**
+         * Reset the TimeSlider to its original state
+         */
+        public override function reset():void {
+            super.reset();
+            thumbVisible = false;
+            setDuration(0);
+            setThumbs();
+            _tooltip.text = Strings.digits(0);
+        }
 	}
 }

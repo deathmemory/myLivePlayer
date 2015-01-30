@@ -166,30 +166,27 @@ package com.longtailvideo.jwplayer.controller {
 		protected function setupError(evt:ErrorEvent):void {
 			Logger.log("STARTUP: Error occurred during player startup: " + evt.text);
 			_view.completeView(true, evt.text);
+			dispatchEvent(new PlayerEvent(PlayerEvent.JWPLAYER_SETUP_ERROR, evt.text));
 		}
-
 
 		protected function finalizeSetup():void {
 			if (!locking && _setupComplete && !_setupFinalized) {
 				_setupFinalized = true;
-				
+
 				_player.addEventListener(ErrorEvent.ERROR, errorHandler);
 
 				_model.addEventListener(PlaylistEvent.JWPLAYER_PLAYLIST_LOADED, playlistLoadHandler, false, -1);
 				_model.addEventListener(PlaylistEvent.JWPLAYER_PLAYLIST_ITEM, playlistItemHandler, false, 1000);
 				_model.addEventListener(MediaEvent.JWPLAYER_MEDIA_COMPLETE, completeHandler, false);
 				_model.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, timeHandler);
-				
-				dispatchEvent(new PlayerEvent(PlayerEvent.JWPLAYER_READY));
 
-//				playlistLoadHandler();
+				// setup listeners so playlist loaded can be dispatched (ready will be forwarded asynchronously)
+				dispatchEvent(new PlayerEvent(PlayerEvent.JWPLAYER_READY));
 
 				// Broadcast playlist loaded (which was swallowed during player setup);
 				if (_model.playlist.length > 0) {
 					_model.dispatchEvent(new PlaylistEvent(PlaylistEvent.JWPLAYER_PLAYLIST_LOADED, _model.playlist));
 				}
-
-				
 			}
 		}
 
@@ -197,7 +194,8 @@ package com.longtailvideo.jwplayer.controller {
 			_delayedItem = null;
 			errorState(evt.text);
 		}
-		protected function playlistLoadHandler(evt:PlaylistEvent=null):void {
+
+		protected function playlistLoadHandler(evt:PlaylistEvent):void {
 			if (!_playlistReady) {
 				_playlistReady = true;
 				_model.playlist.currentIndex = 0;
@@ -212,15 +210,10 @@ package com.longtailvideo.jwplayer.controller {
 			}
 		}
 
-
 		protected function playlistItemHandler(evt:PlaylistEvent):void {
 			_interruptPlay = false;
 			load(_model.playlist.currentItem);
 		}
-
-
-
-
 
 		protected function errorState(message:String=""):void {
 			dispatchEvent(new PlayerEvent(PlayerEvent.JWPLAYER_ERROR, message));
@@ -510,12 +503,6 @@ package com.longtailvideo.jwplayer.controller {
 		public function seek(pos:Number):Boolean {
 			if (!locking && pos !== -1 && _model.media) {
 				switch (_model.media.state) {
-					case PlayerState.PAUSED:
-						play();
-						/* fallthrough */
-					case PlayerState.PLAYING:
-						_model.seek(pos);
-						return true;
 					case PlayerState.IDLE:
 						_model.playlist.currentItem.start = pos;
 						_idleSeek = pos;
@@ -523,7 +510,15 @@ package com.longtailvideo.jwplayer.controller {
 							play();
 						}
 						return true;
+					case PlayerState.PAUSED:
+						play();
+					/* fallthrough */
+					case PlayerState.PLAYING:
 					case PlayerState.BUFFERING:
+						if (_model.media.canSeek) {
+							_model.seek(pos);
+							return true;
+						}
 						_queuedSeek = pos;
 				}
 			}
