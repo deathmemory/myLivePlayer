@@ -167,11 +167,15 @@
 
 
 		private function attachNetStream(stream:NetStream):void {
+			_video.attachNetStream(_stream);
+			return;
+			/*
 			if (_stage) {
-				_stage.attachNetStream(_stream);
+			_stage.attachNetStream(_stream);
 			} else {
-				_video.attachNetStream(_stream);
+			_video.attachNetStream(_stream);
 			}
+			*/
 		}
 		
 		/** Get one or more levels from the loadbalancing XML. **/
