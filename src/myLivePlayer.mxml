@@ -129,7 +129,7 @@
 				this.currentState = appConfig.state;
 				//commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
 				commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
-				commentView.version = version;
+				commentView.version = NKSPLAYER::version;
 				/** 进入房间计时器初始化 **/
 				_entryBtnHideTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function(evt:TimerEvent):void{					
 					entryBtn.visible = false;

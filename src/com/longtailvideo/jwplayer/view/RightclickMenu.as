@@ -48,7 +48,7 @@ package com.longtailvideo.jwplayer.view {
 		/** Initialize the rightclick menu. **/
 		public function initializeMenu():void {
 			setAboutText();
-			addItem(about, aboutHandler);
+			//addItem(about, aboutHandler);
 			if (Capabilities.isDebugger == true || _player.config.debug != Logger.NONE) {
 				debug = new ContextMenuItem('Logging to ' + _player.config.debug + '...');
 				addItem(debug, debugHandler);

@@ -163,7 +163,7 @@ package org.lala.plugins
         {
             //已经确定播放器的右键在root上
             copyMenuItem = new ContextMenuItem("--Click ↑ to copy the contents--",true,false);
-            aboutMenuItem = new ContextMenuItem("About Player v" + _version + ' ...', true, false);
+            aboutMenuItem = new ContextMenuItem("About NKSPlayer v" + _version + ' ...', true, false);
             aboutMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,aboutHandler);
             var mn:ContextMenu = new ContextMenu();
             mn.hideBuiltInItems();
