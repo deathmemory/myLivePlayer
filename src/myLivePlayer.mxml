@@ -25,13 +25,9 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			Security.allowInsecureDomain("*");
-			Security.allowDomain("*");
+			import org.lala.utils.PlayerTool;
 			
 			import com.longtailvideo.jwplayer.player.Player;
-			
-			import flash.net.URLLoader;
-			import flash.net.URLRequest;
 			
 			import flashx.textLayout.conversion.TextConverter;
 			import flashx.textLayout.elements.TextFlow;
@@ -49,17 +45,12 @@
 			private var appConfig:AppConfig;
 			private var savedState:String = 'normal';
 			private var isInnerFullScreenState:Boolean = false;
-			/** 主播房间url **/
-			private var _sUrl:String;
-			/** 隐藏进入房间标签计时器 **/
-			private var _entryBtnHideTimer:Timer = new Timer(1000, 1);
-			/** 获取在online状态计时器 **/
-			private var _onlineStateTimer:Timer = new Timer(1000, 1);
-			/** room id **/
-			private var _roomId:String;
+
 			[Bindable]
 			/** 弹幕播放器插件类的引用 **/
 			private var commentView:CommentView = CommentView.getInstance();
+			/** 播放器小助手 **/
+			private var playerTool:PlayerTool;
 			
 			protected function onLoaderComplete(evt:Event):void
 			{
@@ -81,18 +72,18 @@
 				trace('播放器初始化完成.');
 				
 				_player = livePlayer.player;
-				/*
-				_player.addEventListener( Event.COMPLETE, onLoaderComplete );
-				_player.addEventListener( IOErrorEvent.IO_ERROR, onLoaderIOError );
-				_player.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onLoaderSecurityError );
-				
-				var addr:String = "http://127.0.0.1/videoes/xtxl.flv";
-				_player.load(
-					{   type:'ol',
-						file:addr
-					});
-				*/
+				playerTool = new PlayerTool(_player);
+				loadVideo();
 			}			
+			
+			protected function loadVideo():void
+			{
+				var flashVars:Object = this.systemManager.loaderInfo.parameters;
+				if ( flashVars['vid'] )
+				{
+					playerTool.loadYoutubeVideo(flashVars.vid);
+				}	
+			}
 			
 			protected function application1_currentStateChangeHandler(event:StateChangeEvent):void
 			{
@@ -104,15 +95,6 @@
 			{
 				var params:Object = loaderInfo.parameters;
 				appConfig = new AppConfig(params);
-				/** 替换链接 **/
-				_sUrl = params.file;
-				if (null != _sUrl)
-				{
-					var replaceString:String = "rtmp://media.nikksy.com/play/";
-					_roomId = _sUrl.substring(replaceString.length);
-					
-					_sUrl = _sUrl.replace(replaceString, "http://www.nikksy.com/live.html?c=");
-				}	
 				
 				/** 初始化到无界面状态 **/
 				if(appConfig.state == 'fullScreen')
@@ -123,75 +105,23 @@
 			
 			protected function application1_applicationCompleteHandler(event:FlexEvent):void
 			{
-				//Security.allowDomain("*");
+				Security.allowInsecureDomain("*");
+				Security.allowDomain("*");
 				/** 初始语言配置  **/
 				this.initControlsLanguageCfg();
 				this.currentState = appConfig.state;
 				//commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
 				commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
 				commentView.version = NKSPLAYER::version;
-				/** 进入房间计时器初始化 **/
-				_entryBtnHideTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function(evt:TimerEvent):void{					
-					entryBtn.visible = false;
-				});
-				
-				_onlineStateTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onlineStateReq);
-				//_onlineStateTimer.start();
+
 				/** 全屏情况处理,更改state **/
 				stage.addEventListener( FullScreenEvent.FULL_SCREEN, fullScreenHandler );
-			}
-			
-			private function onlineStateReq(evt:TimerEvent):void
-			{
-				var loader:URLLoader = new URLLoader();
-				var req:URLRequest = new URLRequest('http://api.nissky.com/streaming/channel/info?channels=' + _roomId);
-				var errorHandler:Function = function(event:Event):void
-				{
-					trace(new Date().time + ":加载任务失败:" + event.toString());
-					_onlineStateTimer.reset();
-					_onlineStateTimer.start();
-				}
-				loader.addEventListener(Event.COMPLETE,function(event:Event):void
-				{
-					try
-					{
-						var json:Object = JSON.parse(loader.data);
-						//if (json['data'])
-						{
-							var roomInfo:Object = json['data'][0] as Object;
-							var isOnline:Boolean = int(roomInfo['is_online']) == 0 ? false : true;
-							labLive_changeState(isOnline);
-						}
-					}
-					catch(err:*)
-					{
-						trace("not a good json err:"+err.toString());
-					}
-					trace("load end " + new Date().time);
-				});
-				loader.addEventListener(IOErrorEvent.IO_ERROR,errorHandler);
-				loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR,errorHandler);
-				try
-				{
-					trace("before load " + new Date().time);
-					loader.load(req);
-				}
-				catch(error:Error)
-				{
-					trace('加载任务失败:' +error.toString());
-				}
-				_onlineStateTimer.reset();
-				_onlineStateTimer.start();
 			}
 			
 			/** 初始化语言配置  **/
 			private function initControlsLanguageCfg():void
 			{
 				langmgr.init(systemManager.loaderInfo.parameters);
-				
-				entryBtn.textFlow = TextConverter.importToFlow(String("<font color=\"#ff6400\" size='18' >")
-					+ langmgr.getString("Entry_the_room") + ("</font>"), 
-					TextConverter.TEXT_FIELD_HTML_FORMAT);
 			}
 			
 			/** 处理播放器的工具条上的隐藏弹幕界面按钮事件 **/
@@ -232,75 +162,6 @@
 					currentState = savedState;
 				}
 			}
-			
-			/**
-			 * 处理显示Live标识是否online状态
-			 ***/
-			protected function labLive_changeState(onlive:Boolean):void
-			{
-				var textSize:String = "15";
-				var tf:TextField = new TextField();
-				tf.autoSize = TextFieldAutoSize.LEFT;
-				var fstr :String = "";
-				if ( onlive )
-				{	// onlive
-					fstr = langmgr.getString("mmp_onlive");
-					if ( fstr == null )
-						fstr = "LIVE";
-					fstr = String("<font color=\"#ff0000\">●</font><font color=\"#ffffff\" size='") + textSize + ("' >") + fstr	+ "</font>";
-				}
-				else
-				{	// offline
-					fstr = langmgr.getString("mmp_offline");
-					if ( fstr == null )
-						fstr = "OFFLINE";
-					fstr = String("<font color=\"#ffffff\" size='") + textSize + ("' >") + fstr + "</font>";
-					_player.stop();
-				}
-				
-				tf.htmlText = fstr;
-				
-				labLive.textFlow = TextConverter.importToFlow(fstr, TextConverter.TEXT_FIELD_HTML_FORMAT);
-				labLive.width = tf.width + 20;
-				labLive.height = tf.height + 4;
-				labLive.visible = true;
-				return;
-			}
-			
-			/**
-			 * 进入房间标签点击响应
-			 * **/
-			protected function entryBtn_clickHandler(event:MouseEvent):void
-			{
-				if (null != _sUrl)
-				{
-					var request:URLRequest = new URLRequest(_sUrl);  
-					navigateToURL(request, "_blank");	
-				} 
-			}
-			
-			/**
-			 * 响应鼠标移过是否显示进入房间标志
-			 * **/
-			protected function bordercontainer1_mouseOverAndMoveHandler(event:MouseEvent):void
-			{
-				var url:String = ExternalInterface.call('window.location.href.toString');
-				if (_sUrl != url)
-				{
-					if ( false == entryBtn.visible )
-					{
-						entryBtn.visible = true;
-						_entryBtnHideTimer.start();
-					}
-					else
-					{
-						_entryBtnHideTimer.reset();
-						_entryBtnHideTimer.start();
-					}
-				}
-				
-				//trace("mouseMoveHandler x:" + event.localX + " y:" + event.localY);
-			}
 		]]>
 	</fx:Script>
 	<s:Group width="100%" height="100%">
@@ -311,20 +172,9 @@
 			<s:layout>
 				<s:VerticalLayout gap="1" paddingTop="0" paddingBottom="0"/>
 			</s:layout>
-			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false"
-							   mouseMove="bordercontainer1_mouseOverAndMoveHandler(event)" >
+			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false">
 				<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" 
-							 top="0" bottom="0" left="0" right="0"/>	
-				<s:TextArea id="labLive" left="10" top="10" editable="false" selectable="false" borderVisible="false" visible="false"
-							verticalAlign="middle" textAlign="center" contentBackgroundAlpha="0.6" contentBackgroundColor="0x000000"
-							skinClass="org.lala.components.LiveLabel"/>
-				<s:TextArea id="entryBtn" visible="false" width="300" height="60"
-							borderVisible="false" buttonMode="true"
-							click="entryBtn_clickHandler(event)" contentBackgroundAlpha="0.8"
-							contentBackgroundColor="0x000000" editable="false" horizontalCenter="0"
-							selectable="false" skinClass="org.lala.components.LiveLabel"
-							text="entry" textAlign="center" verticalAlign="middle"
-							verticalCenter="0" hideEffect="{fadeOut}" showEffect="{fadeIn}" />
+							 top="0" bottom="0" left="0" right="0"/>
 			</s:BorderContainer>
 			<!-- 暂时去掉弹幕发送窗口 
 			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
