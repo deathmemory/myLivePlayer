@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="group1_creationCompleteHandler(event)"
+		 show="group1_showHandler(event)"
+		 width="656" height="492">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			
+			[Embed(source='../../../../assets/nksLogo.jpg')]  
+			[Bindable]
+			private var imageSource:Class;
+			
+			private var _LUrl:String;
+			private var _RUrl:String;
+			
+			protected function distributionInfo(dataJ:Object, baseUrl:String, bLive:Boolean):void
+			{
+				var liveImgFmt:String = "http://s3.nikksy.com/previews/live_{0}-356x200.jpg";
+				var rnd:Number = Math.random();rnd=0.2;
+				var lidx:int = rnd * dataJ.length; 
+				var ridx:int = rnd * (dataJ.length / 2);
+				if (lidx == 0)
+					ridx = 1;
+				lwinLabel.text = dataJ[lidx]["title"];
+				if (bLive)
+					lwinImg.source = StringUtil.substitute(liveImgFmt, dataJ[lidx]["id"]);
+				else
+					lwinImg.source = dataJ[lidx]["thumbnail_url"];
+				_LUrl = baseUrl + dataJ[lidx]["id"];
+				
+				rwinLabel.text = dataJ[ridx]["title"];
+				if (bLive)
+					rwinImg.source = StringUtil.substitute(liveImgFmt, dataJ[ridx]["id"]);
+				else
+					rwinImg.source = dataJ[ridx]["thumbnail_url"];
+				_RUrl = baseUrl + dataJ[ridx]["id"];
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+			}
+			
+			protected function winGclickHandler(url:String):void
+			{
+				if ( null == url )
+					return;
+				var request:URLRequest = new URLRequest(url);  
+				navigateToURL(request, "_blank"); 
+			}
+			
+			protected function lwinG_clickHandler(event:MouseEvent):void
+			{
+				winGclickHandler(_LUrl);
+			}
+			
+			protected function rwinG_clickHandler(event:MouseEvent):void
+			{
+				winGclickHandler(_RUrl);
+			}
+			
+			/** 当不可视变为可视时执行 **/
+			protected function group1_showHandler(event:FlexEvent):void
+			{
+				var loader:URLLoader = new URLLoader;
+				loader.addEventListener(IOErrorEvent.IO_ERROR, function (evt:ErrorEvent):void{
+					trace(evt.toString());
+				});
+				loader.addEventListener(Event.COMPLETE, function(evt:Event):void{
+					var streamjson:Object = JSON.parse(loader.data);
+					if (streamjson != null && streamjson["data"].length > 1) // 要大于1 个
+					{/** 直播推荐  **/
+						distributionInfo(streamjson["data"], "http://www.nikksy.com/live.html?c=", true);
+					}
+					else
+					{
+						var videoLoader:URLLoader = new URLLoader;
+						videoLoader.addEventListener(Event.COMPLETE, function(evt:Event):void{
+							var videojson:Object = JSON.parse(videoLoader.data);
+							var dataJ:Object = videojson["data"];
+							if (videojson != null && dataJ.length > 1) // 要大于1 个
+							{/**  **/
+								distributionInfo(dataJ, "http://www.nikksy.com/play.html?link=", false);
+							}
+						});
+						videoLoader.load( new URLRequest("http://www.nikksy.com/video/link/listbytag?tag=146&limit=20") );
+					}
+				});
+				loader.load(new URLRequest("http://www.nikksy.com/streaming/channel/listhot"));
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:Fade id="fadeOut" duration="3000" alphaFrom="1" alphaTo="0" />
+		<s:Fade id="fadeIn" duration="1000" alphaFrom="0" alphaTo="1" />
+		
+	</fx:Declarations>
+	<s:BorderContainer id="bgBorder" width="100%" height="100%" backgroundColor="#000000" >
+		<s:BorderContainer id="bgLabel" width="{bgBorder.width * 0.8}" height="{bgBorder.height * 0.55}" backgroundColor="#000000"
+						   horizontalCenter="0" verticalCenter="0" borderVisible="false">
+			<s:Group width="100%" height="100%">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>
+				
+				<s:BorderContainer width="47%" height="100%" backgroundColor="#333333" borderWeight="5">
+					<s:Group id="lwinG" width="100%" height="100%" buttonMode="true" click="lwinG_clickHandler(event)">
+						<s:layout>
+							<s:VerticalLayout/>
+						</s:layout>
+						<s:Image id="lwinImg" width="100%" height="80%" source="{imageSource}" 
+								 fillMode="scale" scaleMode="stretch" verticalCenter="0"/>
+						<s:Label id="lwinLabel" width="100%" height="20%" backgroundColor="#333333" verticalAlign="middle" color="#CCCCCC"/>
+					</s:Group>
+				</s:BorderContainer>
+				
+				<s:Spacer width="6%" height="100%" />
+				
+				<s:BorderContainer width="47%" height="100%" backgroundColor="#333333" borderWeight="5">
+					<s:Group id="rwinG" width="100%" height="100%" buttonMode="true" click="rwinG_clickHandler(event)">
+						<s:layout>
+							<s:VerticalLayout/>
+						</s:layout>
+						<s:Image id="rwinImg" width="100%" height="80%" source="{imageSource}" 
+								 fillMode="scale" scaleMode="stretch" verticalCenter="0"/>
+						<s:Label id="rwinLabel" width="100%" height="20%" backgroundColor="#333333" verticalAlign="middle" color="#CCCCCC"/>
+					</s:Group>
+				</s:BorderContainer>
+				
+			</s:Group>
+		</s:BorderContainer>
+	</s:BorderContainer>	
+</s:Group>

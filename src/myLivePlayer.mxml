@@ -280,6 +280,8 @@
 					fstr = String("<font color=\"#ffffff\" size='") + textSize + ("' >") + fstr + "</font>";
 					// 当已经 offline 的时候不必再请求数据
 					_player.stop();
+					// 显示推广界面
+					popuUI.visible = true;
 				}
 				
 				tf.htmlText = fstr;
@@ -349,6 +351,7 @@
 							selectable="false" skinClass="org.lala.components.LiveLabel"
 							text="entry" textAlign="center" verticalAlign="middle"
 							verticalCenter="0" hideEffect="{fadeOut}" showEffect="{fadeIn}" />
+				<mk:popularizeUI id="popuUI" width="100%" height="100%" visible="false"/>
 			</s:BorderContainer>
 			<!-- 暂时去掉弹幕发送窗口 
 			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
