@@ -24,11 +24,9 @@
 		<s:Fade id="fadeIn" duration="1000" alphaFrom="0" alphaTo="1" />
 	</fx:Declarations>
 	<fx:Script>
-		<![CDATA[
-			Security.allowInsecureDomain("*");
-			Security.allowDomain("*");
-			
+		<![CDATA[			
 			import com.longtailvideo.jwplayer.player.Player;
+			import com.longtailvideo.jwplayer.player.PlayerState;
 			
 			import flash.net.URLLoader;
 			import flash.net.URLRequest;
@@ -57,6 +55,9 @@
 			private var _onlineStateTimer:Timer = new Timer(1000, 1);
 			/** room id **/
 			private var _roomId:String;
+			/** 请求房间信息时 忽略的秒数  **/
+			private var ignoreSec:int = 0;
+			
 			[Bindable]
 			/** 弹幕播放器插件类的引用 **/
 			private var commentView:CommentView = CommentView.getInstance();
@@ -81,6 +82,8 @@
 				trace('播放器初始化完成.');
 				
 				_player = livePlayer.player;
+				
+				_onlineStateTimer.start();
 				/*
 				_player.addEventListener( Event.COMPLETE, onLoaderComplete );
 				_player.addEventListener( IOErrorEvent.IO_ERROR, onLoaderIOError );
@@ -136,18 +139,38 @@
 				});
 				
 				_onlineStateTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onlineStateReq);
-				_onlineStateTimer.start();
 				/** 全屏情况处理,更改state **/
 				stage.addEventListener( FullScreenEvent.FULL_SCREEN, fullScreenHandler );
 			}
 			
+			/**
+			 * 获取主播在线状态，修改显示状态
+			 * **/	
 			private function onlineStateReq(evt:TimerEvent):void
 			{
+				var player:Player = livePlayer.player;
+				if ( player.state != PlayerState.BUFFERING )
+				{
+					return;	
+				}
+				else
+				{
+					/** 请求的时候忽略10秒 **/
+					if ( 0 == ignoreSec )
+					{
+						ignoreSec = 10;	// 忽略秒数
+					}
+					else
+					{
+						ignoreSec --;
+						return;
+					}
+				}
 				var loader:URLLoader = new URLLoader();
 				var req:URLRequest = new URLRequest('http://www.nikksy.com/streaming/channel/info?channels=' + _roomId);
 				var errorHandler:Function = function(event:Event):void
 				{
-					trace(new Date().time + ":加载任务失败:" + event.toString());
+					trace("加载任务失败:" + event.toString());
 					_onlineStateTimer.reset();
 					_onlineStateTimer.start();
 				}
@@ -167,13 +190,13 @@
 					{
 						trace("not a good json err:"+err.toString());
 					}
-					trace("load end " + new Date().time);
+					trace("load user info end " + new Date().time);
 				});
 				loader.addEventListener(IOErrorEvent.IO_ERROR,errorHandler);
 				loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR,errorHandler);
 				try
 				{
-					trace("before load " + new Date().time);
+					//trace("before load " + new Date().time);
 					loader.load(req);
 				}
 				catch(error:Error)
@@ -255,6 +278,7 @@
 					if ( fstr == null )
 						fstr = "OFFLINE";
 					fstr = String("<font color=\"#ffffff\" size='") + textSize + ("' >") + fstr + "</font>";
+					// 当已经 offline 的时候不必再请求数据
 					_player.stop();
 				}
 				
