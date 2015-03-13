@@ -28,6 +28,17 @@ package org.lala.utils
 			_player.load({file: url});			
 		}
 		
+		/**
+		 * 播放youtube视频,同时测试一下log
+		 * @param vid youtube视频id
+		 **/
+		public function loadLiveStream(serverAddr:String, channel:String):void
+		{
+			log("loading live stream ...");
+			var url:String = "rtmp://" + serverAddr + "/play/" + channel;
+			_player.load({file: url});			
+		}
+		
 		private function log(message:String):void
 		{
 			trace(message);

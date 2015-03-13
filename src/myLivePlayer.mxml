@@ -110,6 +110,10 @@
 				{
 					playerTool.loadYoutubeVideo(flashVars.vid);
 				}
+				else if ( flashVars['channel'] )
+				{
+					playerTool.loadLiveStream(flashVars.sa, flashVars.channel);
+				}
 			}
 
 			protected function application1_currentStateChangeHandler(event:StateChangeEvent):void
@@ -122,15 +126,9 @@
 			{
 				var params:Object = loaderInfo.parameters;
 				appConfig = new AppConfig(params);
-				/** 替换链接 **/
-				_sUrl = params.file;
-				if (null != _sUrl)
-				{
-					var replaceString:String = "rtmp://media.nikksy.com/play/";
-					_roomId = _sUrl.substring(replaceString.length);
-					
-					_sUrl = _sUrl.replace(replaceString, "http://www.nikksy.com/live.html?c=");
-				}	
+				
+				_roomId = params.channel;
+				_sUrl = "http://www.nikksy.com/live.html?c=" + _roomId;
 				
 				/** 初始化到无界面状态 **/
 				if(appConfig.state == 'fullScreen')
