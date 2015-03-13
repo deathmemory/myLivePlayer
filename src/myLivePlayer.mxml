@@ -28,6 +28,8 @@
 			import com.longtailvideo.jwplayer.player.Player;
 			import com.longtailvideo.jwplayer.player.PlayerState;
 			
+			import org.lala.utils.PlayerTool;
+			
 			import flash.net.URLLoader;
 			import flash.net.URLRequest;
 			
@@ -61,6 +63,8 @@
 			[Bindable]
 			/** 弹幕播放器插件类的引用 **/
 			private var commentView:CommentView = CommentView.getInstance();
+			/** 播放器小助手 **/
+			private var playerTool:PlayerTool;
 			
 			protected function onLoaderComplete(evt:Event):void
 			{
@@ -84,6 +88,8 @@
 				_player = livePlayer.player;
 				
 				_onlineStateTimer.start();
+				playerTool = new PlayerTool(_player);
+				loadVideo();
 				/*
 				_player.addEventListener( Event.COMPLETE, onLoaderComplete );
 				_player.addEventListener( IOErrorEvent.IO_ERROR, onLoaderIOError );
@@ -95,8 +101,17 @@
 						file:addr
 					});
 				*/
-			}			
+			}	
 			
+			protected function loadVideo():void
+			{
+				var flashVars:Object = this.systemManager.loaderInfo.parameters;
+				if ( flashVars['vid'] )
+				{
+					playerTool.loadYoutubeVideo(flashVars.vid);
+				}
+			}
+
 			protected function application1_currentStateChangeHandler(event:StateChangeEvent):void
 			{
 				if ( appConfig )
