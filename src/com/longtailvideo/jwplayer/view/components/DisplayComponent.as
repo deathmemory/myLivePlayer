@@ -209,6 +209,10 @@
 		protected function setDisplay(displayIcon:DisplayIcon, displayText:String = null):void {
 			if (displayIcon) displayIcon.text = displayText;
 			setIcon(displayIcon);
+			if (_icons['play'] == displayIcon )
+				this.buttonMode = true;
+			else
+				this.buttonMode = false;
 		}
 		
 		
