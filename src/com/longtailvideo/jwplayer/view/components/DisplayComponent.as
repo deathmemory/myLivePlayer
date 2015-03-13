@@ -90,7 +90,7 @@
 			player.addEventListener(PlaylistEvent.JWPLAYER_PLAYLIST_ITEM, itemHandler);
 			player.addEventListener(PlaylistEvent.JWPLAYER_PLAYLIST_COMPLETE, playlistComplete);
 			addEventListener(MouseEvent.CLICK, clickHandler);
-			this.buttonMode = true;
+			//this.buttonMode = true;
 		}
 		
 		

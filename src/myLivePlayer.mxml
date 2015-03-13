@@ -136,7 +136,7 @@
 				});
 				
 				_onlineStateTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onlineStateReq);
-				//_onlineStateTimer.start();
+				_onlineStateTimer.start();
 				/** 全屏情况处理,更改state **/
 				stage.addEventListener( FullScreenEvent.FULL_SCREEN, fullScreenHandler );
 			}
@@ -144,7 +144,7 @@
 			private function onlineStateReq(evt:TimerEvent):void
 			{
 				var loader:URLLoader = new URLLoader();
-				var req:URLRequest = new URLRequest('http://api.nissky.com/streaming/channel/info?channels=' + _roomId);
+				var req:URLRequest = new URLRequest('http://www.nikksy.com/streaming/channel/info?channels=' + _roomId);
 				var errorHandler:Function = function(event:Event):void
 				{
 					trace(new Date().time + ":加载任务失败:" + event.toString());
