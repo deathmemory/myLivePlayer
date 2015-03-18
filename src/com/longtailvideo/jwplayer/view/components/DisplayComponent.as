@@ -284,7 +284,7 @@
 			dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_CLICK));
 			if (!_player.getControls()) return;
 			if (currentState == PlayerState.PLAYING || currentState == PlayerState.BUFFERING) {
-				if ( _player.config.type != "rtmp" )
+				if ( ! _player.config['channel'] )
 					dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PAUSE));
 			} else {
 				dispatchEvent(new ViewEvent(ViewEvent.JWPLAYER_VIEW_PLAY));

@@ -36,7 +36,7 @@ package org.lala.utils
 		{
 			log("loading live stream ...");
 			var url:String = "rtmp://" + serverAddr + "/play/" + channel;
-			_player.load({file: url});			
+			_player.load({file: url, provider: "rtmp"});			
 		}
 		
 		private function log(message:String):void

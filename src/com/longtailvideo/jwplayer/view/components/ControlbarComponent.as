@@ -415,7 +415,7 @@ package com.longtailvideo.jwplayer.view.components {
                     setPositionAndDuration(evt.position, evt.duration);
                     if (isLive && evt.type == MediaEvent.JWPLAYER_MEDIA_TIME) {
 						if (!_instreamMode) {
-							setText(player.playlist.currentItem.title || "Live broadcast");
+							setText(player.playlist.currentItem.title || "Nikksy");	//"Live broadcast"
 						}
 					} else {
                         if (_timeSlider) {
