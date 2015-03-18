@@ -18,7 +18,7 @@
 	<fx:Style source="myLivePlayer.css" />
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
-		<fx:String id='version'>2.1.0.31</fx:String>
+		<!-- <fx:String id='version'>2.1.0.31</fx:String> -->
 		
 		<s:Fade id="fadeOut" duration="3000" alphaFrom="1" alphaTo="0" />
 		<s:Fade id="fadeIn" duration="1000" alphaFrom="0" alphaTo="1" />
