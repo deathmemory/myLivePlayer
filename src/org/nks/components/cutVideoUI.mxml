@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 minWidth="400" minHeight="40"
+		 creationComplete="group1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.longtailvideo.jwplayer.player.Player;
+			
+			import mx.events.FlexEvent;
+			
+			private var _player:Player;
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public function init(player:Player):void
+			{
+				_player = player;
+				if (_player)
+					this.visible = true;
+				
+			}
+			
+			protected function doThg_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace( "current:" +  _player.getCurrentAudioTrack() );
+				_player.seek(120);
+				trace( "current after seek:" +  _player.getCurrentAudioTrack() );
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Group>
+		<s:layout>
+			<s:HorizontalLayout />
+		</s:layout>
+		<s:Button id="doThg" click="doThg_clickHandler(event)" />
+	</s:Group>
+</s:Group>
