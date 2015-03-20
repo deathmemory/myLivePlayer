@@ -1124,7 +1124,8 @@ package com.longtailvideo.jwplayer.view.components {
 		}
 
 		override public function show():void {
-			animations.fade(1, .5);
+			//animations.fade(1, .5);
+			trace("123123123");
 		}
 
 		public function set casting(state:Boolean):void  {

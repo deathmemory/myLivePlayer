@@ -177,8 +177,8 @@
 			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false">
 				<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" 
 							 top="0" bottom="0" left="0" right="0"/>
-				
 			</s:BorderContainer>
+			<nks:cutVideoUI id="cvUI" visible="false" bottom="0"/>
 			<!-- 暂时去掉弹幕发送窗口 
 			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
 				<mk:NormalCommentInput id="nCommnetInput" width="100%" height="100%" />				
