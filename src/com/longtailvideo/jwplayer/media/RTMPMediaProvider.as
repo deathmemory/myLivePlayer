@@ -364,6 +364,7 @@
 					_stream.pause();
 				} else { 
 					_stream.close();
+					_connection.close();
 				}
 			}
 			clearInterval(_interval);

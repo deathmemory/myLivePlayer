@@ -401,7 +401,8 @@ package com.longtailvideo.jwplayer.controller {
 							_model.media.seek(_queuedSeek);
 							_queuedSeek = -1; 
 						} else { 
-							_model.media.play(); 
+							//_model.media.play();
+							_model.media.load(_model.playlist.currentItem);
 						}
 						break;
 				}
