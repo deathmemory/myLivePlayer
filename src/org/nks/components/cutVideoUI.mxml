@@ -8,6 +8,7 @@
 		<![CDATA[
 			import com.longtailvideo.jwplayer.player.Player;
 			import com.longtailvideo.jwplayer.events.MediaEvent;
+			import com.longtailvideo.jwplayer.events.ViewEvent;
 			
 			import mx.events.FlexEvent;
 			
@@ -25,14 +26,19 @@
 				if (_player)
 					this.visible = true;
 				_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaHandler);
-				
+				_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_VOLUME, volumeHandler);
+			}
+			
+			protected function volumeHandler(evt:MediaEvent):void 
+			{
+				trace("volume:" + evt.volume);
 			}
 			
 			private function mediaHandler(evt:MediaEvent):void 
 			{
 				switch (evt.type) {
 					case MediaEvent.JWPLAYER_MEDIA_TIME:
-						_player.removeEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaHandler);
+						//_player.removeEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaHandler);
 						_duration = evt.duration;
 						trace( "duration all :" + _duration );
 						break;
@@ -57,6 +63,9 @@
 		<s:layout>
 			<s:HorizontalLayout />
 		</s:layout>
-		<s:Button id="doThg" height="100%" width="400" right="0" click="doThg_clickHandler(event)"/>
+		<s:Label id="es" height="100%" width="{es.height}" left="0"/>
+		<s:HSlider id="timeSlider" width="100%" height="100%" />
+		<s:Label id="duration" height="100%" width="{duration.height}" right="0"/>
+		<!-- <s:Button id="doThg" height="100%" width="400" right="0" click="doThg_clickHandler(event)"/> -->
 	</s:Group>
 </s:Group>
