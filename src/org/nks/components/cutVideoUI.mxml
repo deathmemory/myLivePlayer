@@ -30,6 +30,10 @@
 				lbtn.x = bgc.width * 1/3;
 				rbtn.x = bgc.width * 2/3;
 				
+				var width:Number = bgc.width;
+				bgc.percentWidth = 0;
+				bgc.width = width;
+				
 				lbtn.addEventListener(MouseEvent.MOUSE_DOWN, lbtnDown);
 				rbtn.addEventListener(MouseEvent.MOUSE_DOWN, rbtnDown);
 				
@@ -120,6 +124,16 @@
 				var p:Number = (x - bgcpoint.x) / bgc.width;
 				var time:Number = p * this._duration;
 				this._player.seek(time + 4);
+				
+				
+				time = (lx - bgcpoint.x) / bgc.width * this._duration; 
+				var timeR:Number = (rx - bgcpoint.x) / bgc.width * this._duration;
+				var len:Number = timeR - time;
+				trace("time:" + time + " len:" + len);
+				var jsObj:Object = new Object;
+				jsObj.time = time;
+				jsObj.len = len;
+				ExternalInterface.call("cutVideoInfo", jsObj);
 			}
 			
 			private function lbtnDown(event:MouseEvent):void
@@ -176,12 +190,12 @@
 				 verticalAlign="middle"/>
 		<s:Group width="100%" height="100%" >
 			<s:layout>
-				<s:HorizontalLayout />
+				<s:HorizontalLayout gap="0" />
 			</s:layout>
 			
 			<s:Group width="100%" height="100%" mouseOut="onMouseOut(event)">
-				<s:Button id="bgc" chromeColor="#0A0909" enabled="true" width="800" height="100%" verticalCenter="0"/>
-				<s:Button id="fgc" chromeColor="#cdcdcd" enabled="true" width="0" height="100%" verticalCenter="0"/>
+				<s:Label id="bgc" backgroundColor="#222224" width="845" height="100%" verticalCenter="0"/>
+				<s:Label id="fgc" backgroundColor="#cdcdcd" width="0" height="100%" verticalCenter="0"/>
 				<s:Button id="lbtn" chromeColor="#FE6D03" width="10" height="100%" mouseDown="lbtnDown" />
 				<s:Button id="rbtn" chromeColor="#FE6D03" width="10" height="100%" mouseDown="rbtnDown"/>
 			</s:Group>
@@ -189,7 +203,6 @@
 		</s:Group>
 		<s:Label id="durTime" width="40" height="100%" backgroundColor="#FC9708" text="durTime"
 				 textAlign="center" verticalAlign="middle"/>
-		<s:Button label="commit" width="100%" height="100%" click="doThg_clickHandler(event)" />
 		<!-- <s:Button id="doThg" height="100%" width="400" right="0" click="doThg_clickHandler(event)"/> -->
 	</s:Group>
 	<s:Label id="timeTip" text="11:11" backgroundColor="#3e3e3e" color="#cdcdcd" y="-35" width="55" height="22"
