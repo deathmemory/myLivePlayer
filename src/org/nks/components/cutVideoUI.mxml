@@ -47,11 +47,14 @@
 				trace("ver: 1.2");
 				_player = player;
 				if (_player)
+				{
 					this.visible = true;
-				_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaHandler);
-				_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_VOLUME, volumeHandler);
-				
-				stage.addEventListener(MouseEvent.MOUSE_MOVE, bgc_mouseMoveHandler);
+					_player.volume(50);
+					_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_TIME, mediaHandler);
+					_player.addEventListener(MediaEvent.JWPLAYER_MEDIA_VOLUME, volumeHandler);
+					
+					stage.addEventListener(MouseEvent.MOUSE_MOVE, bgc_mouseMoveHandler);
+				}
 			}
 			
 			protected function volumeHandler(evt:MediaEvent):void 

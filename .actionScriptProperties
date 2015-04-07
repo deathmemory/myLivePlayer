@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <actionScriptProperties analytics="false" mainApplicationPath="myLivePlayer.mxml" projectUUID="490854b6-2852-4f64-bcec-77d08b3388a6" version="10">
-  <compiler additionalCompilerArguments="-locale en_US tr_TR -define=NKSPLAYER::version,'2.0.2.1'" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="false" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="false" verifyDigests="true" warn="false">
+  <compiler additionalCompilerArguments="-locale en_US tr_TR -define=NKSPLAYER::version,'2.0.2.39'" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="false" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="false" verifyDigests="true" warn="false">
     <compilerSourcePath>
       <compilerSourcePathEntry kind="1" linkType="1" path="locale/{locale}"/>
     </compilerSourcePath>
