@@ -178,13 +178,13 @@
 					var time:Number = p * this._duration;
 					
 					timeTip.text = Strings.digits(time);
-					timeTip.x = event.stageX - timeTip.width / 2; 
-					timeTip.visible = true;
+					tipGrp.x = event.stageX - tipGrp.width / 2; 
+					tipGrp.visible = true;
 					//trace ("in rect");
 				}
 				else
 				{
-					timeTip.visible = false;
+					tipGrp.visible = false;
 					//trace ("not in rect");
 				}
 				//trace("event.stageX :" + event.stageX + " y:" + event.stageY);
@@ -192,7 +192,7 @@
 			
 			private function onMouseOut(event:MouseEvent):void
 			{
-				timeTip.visible = false;
+				tipGrp.visible = false;
 			}
 			
 			[Embed(source="assets/cleft.png")]
@@ -223,7 +223,7 @@
 			<s:BitmapImage source="@Embed(source='assets/clright_2.png')" width="14" height="20"/>
 			<s:Group width="65" height="100%">
 				<s:BitmapImage source="@Embed(source='assets/clright_1.png')" width="65" height="20" />
-				<s:Label id="durTime" right="0" width="100%" height="100%" color="#cdcdcd" text="posTime" 
+				<s:Label id="durTime" right="0" width="100%" height="100%" color="#cdcdcd" text="durTime" 
 						 top="2" textAlign="center" verticalAlign="middle"/>
 			</s:Group>
 		</s:HGroup>
@@ -250,6 +250,10 @@
 				 textAlign="center" verticalAlign="middle"/>
 		-->
 	</s:Group>
-	<s:Label id="timeTip" text="11:11" backgroundColor="#3e3e3e" color="#cdcdcd" y="-35" width="55" height="22"
-			 visible="false" textAlign="center" verticalAlign="middle" />
+	<s:Group id="tipGrp" width="88" height="37" y="-35" visible="false">
+		<s:BitmapImage source="@Embed(source='assets/tip.png')" width="{tipGrp.width}" height="{tipGrp.height}" />
+		<s:Label id="timeTip" text="11:11" color="#ffffff" width="{tipGrp.width}" height="30"
+				 textAlign="center" verticalAlign="middle" />
+	</s:Group>
+	
 </s:Group>
