@@ -2,6 +2,8 @@
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
 		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:lac="org.lala.components.*"
+		 xmlns:nks="org.nks.components.*"
 		 minWidth="400" minHeight="40"
 		 creationComplete="group1_creationCompleteHandler(event)">
 	<fx:Script>
@@ -88,14 +90,14 @@
 				if ( _bLeftBtn ) 
 				{
 					var rpoint:Point = rbtn.contentToLocal(new Point(rbtn.x, rbtn.y));
-					var bgcpoint:Point = bgc.contentToLocal(new Point(bgc.x, bgc.y));
+					var bgcpoint:Point = (new Point(bgc.x, bgc.y));
 					component.startDrag(false, new Rectangle(0 - lbtn.width , 0, rpoint.x - bgcpoint.x, 0));
 				}
 				else
 				{
 					var lpoint:Point = lbtn.contentToLocal(new Point(lbtn.x, lbtn.y));
-					var bgcpoint:Point = bgc.contentToLocal(new Point(bgc.x, bgc.y));
-					component.startDrag(true, new Rectangle(lpoint.x - bgcpoint.x + lbtn.width, 0, bgc.width - lbtn.x - lbtn.width, 0));
+					var bgcpoint:Point = (new Point(bgc.x, bgc.y));
+					component.startDrag(false, new Rectangle(lpoint.x - bgcpoint.x + lbtn.width, 0, bgc.width - lbtn.x - lbtn.width, 0));
 				}
 			} 
 			
@@ -104,7 +106,7 @@
 				stage.removeEventListener(MouseEvent.MOUSE_UP, this.stopMove);
 				stopDrag();
 				
-				var bgcpoint:Point = bgc.contentToLocal(new Point(bgc.x, bgc.y));
+				var bgcpoint:Point = (new Point(bgc.x, bgc.y));
 				var point:Point;
 				var x:Number;
 				var lx:Number;
@@ -148,14 +150,28 @@
 				startMove(event);
 			}
 			
+			private function isInRect(event:MouseEvent, point:Point, tgt:Object):Boolean
+			{
+				if ( ( event.stageX >= point.x && event.stageX <= (point.x + tgt.width) )
+					&& ( event.stageY > point.y && event.stageY < (point.y + tgt.height) ) )
+					return true;
+				else
+					return false;
+			}
+			
 			protected function bgc_mouseMoveHandler(event:MouseEvent):void
 			{
 				var point:Point = bgc.localToGlobal(new Point(bgc.x, bgc.y));
-				if ( ( event.stageX >= point.x && event.stageX <= (point.x + bgc.width) )
-					&& ( event.stageY > point.y && event.stageY < (point.y + bgc.height) )
-				)
+				if (isInRect(event, point, bgc))
 				{
-					var p:Number = ( event.stageX - point.x ) / bgc.width;
+					var p:Number;
+					if (isInRect(event, new Point(lbtn.x + 79, point.y), lbtn)) {
+						p = (lbtn.x + lbtn.width) / bgc.width;
+						//trace("in lbtn");
+					} else if (isInRect(event, new Point(rbtn.x + 79, point.y), rbtn)) {
+						p = rbtn.x / bgc.width;
+					} else
+						p = ( event.stageX - point.x ) / bgc.width;
 					var time:Number = p * this._duration;
 					
 					timeTip.text = Strings.digits(time);
@@ -176,34 +192,60 @@
 				timeTip.visible = false;
 			}
 			
+			[Embed(source="assets/cleft.png")]
+			private var leftBtnIcon:Class;
+			[Embed(source="assets/cright.png")]
+			private var rightBtnIcon:Class;
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
-	<s:Group width="100%" height="100%">
-		<s:layout>
-			<s:HorizontalLayout />
-		</s:layout>
+	<s:Group id="mainGrp" width="100%" height="100%" >
+		<!--
 		<s:Label id="posTime" right="0" width="40" height="100%" backgroundColor="#0FFF97"
 				 chromeColor="#FE0303" color="#FF0404" text="posTime" textAlign="center"
 				 verticalAlign="middle"/>
-		<s:Group width="100%" height="100%" >
-			<s:layout>
-				<s:HorizontalLayout gap="0" />
-			</s:layout>
-			
+		-->
+		<s:HGroup width="79" height="100%" gap="0">
+			<s:Group width="65" height="100%">
+				<s:BitmapImage source="@Embed(source='assets/clleft_1.png')" width="65" height="20" />
+				<s:Label id="posTime" right="0" width="100%" height="100%" color="#cdcdcd" text="posTime" 
+						 top="2" textAlign="center" verticalAlign="middle"/>
+			</s:Group>
+			<s:BitmapImage source="@Embed(source='assets/clleft_2.png')" width="14" height="20"/>
+		</s:HGroup>
+		
+		<s:HGroup x="{mainGrp.width-79}" width="79" height="100%" gap="0">
+			<s:BitmapImage source="@Embed(source='assets/clright_2.png')" width="14" height="20"/>
+			<s:Group width="65" height="100%">
+				<s:BitmapImage source="@Embed(source='assets/clright_1.png')" width="65" height="20" />
+				<s:Label id="durTime" right="0" width="100%" height="100%" color="#cdcdcd" text="posTime" 
+						 top="2" textAlign="center" verticalAlign="middle"/>
+			</s:Group>
+		</s:HGroup>
+		
+		<s:HGroup x="79" id="mslider" width="{mainGrp.width - (79*2)}" height="100%" gap="0" >
 			<s:Group width="100%" height="100%" mouseOut="onMouseOut(event)">
-				<s:Label id="bgc" backgroundColor="#222224" width="845" height="100%" verticalCenter="0"/>
+				<!-- <s:Label id="bgc" backgroundColor="#222224" width="100%" height="100%" verticalCenter="0"/>
 				<s:Label id="fgc" backgroundColor="#cdcdcd" width="0" height="100%" verticalCenter="0"/>
 				<s:Button id="lbtn" chromeColor="#FE6D03" width="10" height="100%" mouseDown="lbtnDown" />
-				<s:Button id="rbtn" chromeColor="#FE6D03" width="10" height="100%" mouseDown="rbtnDown"/>
+				<s:Button id="rbtn" chromeColor="#FE6D03" width="10" height="100%" mouseDown="rbtnDown"/>	-->
+				<s:BitmapImage id="bgc" width="100%" height="100%" verticalCenter="0" source="@Embed(source='assets/cbottom.png')" />
+				<s:BitmapImage id="fgc" width="0" height="100%" verticalCenter="0" source="@Embed(source='assets/cproc.png')" />
+				<lac:IconButton id="lbtn" width="10" height="100%" mouseDown="lbtnDown" 
+								upimg="{leftBtnIcon}" overimg="{leftBtnIcon}" downimg="{leftBtnIcon}"
+							 	skinClass="org.lala.components.skins.IconButtonSkin"/>
+				<lac:IconButton id="rbtn" width="10" height="100%" mouseDown="rbtnDown" 
+								upimg="{rightBtnIcon}" overimg="{rightBtnIcon}" downimg="{rightBtnIcon}"
+								skinClass="org.lala.components.skins.IconButtonSkin"/>
 			</s:Group>
-			
-		</s:Group>
+		</s:HGroup>
+		
+		<!--
 		<s:Label id="durTime" width="40" height="100%" backgroundColor="#FC9708" text="durTime"
 				 textAlign="center" verticalAlign="middle"/>
-		<!-- <s:Button id="doThg" height="100%" width="400" right="0" click="doThg_clickHandler(event)"/> -->
+		-->
 	</s:Group>
 	<s:Label id="timeTip" text="11:11" backgroundColor="#3e3e3e" color="#cdcdcd" y="-35" width="55" height="22"
 			 visible="false" textAlign="center" verticalAlign="middle" />

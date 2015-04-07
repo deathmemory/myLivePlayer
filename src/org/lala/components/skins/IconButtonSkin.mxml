@@ -80,7 +80,7 @@
         <s:State name="down" />
         <s:State name="disabled" />
     </s:states>
-    
+    <!--
 	<s:Rect id="fill_up" left="1" right="1" top="1" bottom="1" radiusX="{cornerRadius}" includeIn="up">
 		<s:fill>
 			<s:SolidColor color="0xdf380b"/>
@@ -104,7 +104,7 @@
 			<s:SolidColor color="0xf1f1f1"/>
 		</s:fill>
 	</s:Rect>
-    
+    -->
 	<s:BitmapImage id="bgpic" 
 				   source.up="{hostComponent.getStyle('upimg')}" 
 				   source.over="{hostComponent.getStyle('overimg')}"
