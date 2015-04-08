@@ -4,13 +4,14 @@
 		 xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 xmlns:lac="org.lala.components.*"
 		 xmlns:nks="org.nks.components.*"
-		 minWidth="400" minHeight="40"
+		 minWidth="200" minHeight="40"
 		 creationComplete="group1_creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import com.longtailvideo.jwplayer.events.MediaEvent;
 			import com.longtailvideo.jwplayer.events.ViewEvent;
 			import com.longtailvideo.jwplayer.player.Player;
+			import com.longtailvideo.jwplayer.player.PlayerState;
 			import com.longtailvideo.jwplayer.utils.Strings;
 			
 			import mx.controls.Button;
@@ -29,12 +30,9 @@
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
+				
 				lbtn.x = bgc.width * 1/3;
 				rbtn.x = bgc.width * 2/3;
-				
-				var width:Number = bgc.width;
-				bgc.percentWidth = 0;
-				bgc.width = width;
 				
 				lbtn.addEventListener(MouseEvent.MOUSE_DOWN, lbtnDown);
 				rbtn.addEventListener(MouseEvent.MOUSE_DOWN, rbtnDown);
@@ -44,7 +42,7 @@
 			
 			public function init(player:Player):void
 			{
-				trace("ver: 1.2");
+				//trace("ver: 1.2");
 				_player = player;
 				if (_player)
 				{
@@ -90,6 +88,9 @@
 				var component:UIComponent = event.currentTarget as UIComponent;
 				stage.addEventListener(MouseEvent.MOUSE_UP, this.stopMove);
 				
+				mslider.maxWidth = mslider.width;
+				bgc.maxWidth = bgc.width;
+				
 				if ( _bLeftBtn ) 
 				{
 					var rpoint:Point = rbtn.contentToLocal(new Point(rbtn.x, rbtn.y));
@@ -100,7 +101,9 @@
 				{
 					var lpoint:Point = lbtn.contentToLocal(new Point(lbtn.x, lbtn.y));
 					var bgcpoint:Point = (new Point(bgc.x, bgc.y));
-					component.startDrag(false, new Rectangle(lpoint.x - bgcpoint.x + lbtn.width, 0, bgc.width - lbtn.x - lbtn.width, 0));
+					var lbpos:Number = lpoint.x + lbtn.width;
+					component.startDrag(false, new Rectangle(lbpos, 0, bgc.width - lbpos, 0));
+					//trace("x:" + lbpos + " width:" + (bgc.width - lbpos) + " bgc.width:" + bgc.width);
 				}
 			} 
 			
@@ -128,8 +131,15 @@
 				
 				var p:Number = (x - bgcpoint.x) / bgc.width;
 				var time:Number = p * this._duration;
-				this._player.seek(time + 4);
-				
+				try {
+					if ( _player.state == PlayerState.PAUSED ) {
+						this._player.seek(time + 4);
+						_player.pause();
+					} else
+						this._player.seek(time + 4);
+				} catch(e) {
+					trace("invalid video");
+				}
 				
 				time = (lx - bgcpoint.x) / bgc.width * this._duration; 
 				var timeR:Number = (rx - bgcpoint.x) / bgc.width * this._duration;
@@ -204,7 +214,7 @@
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
-	<s:Group id="mainGrp" width="100%" height="100%" >
+	<s:HGroup id="mainGrp" width="100%" height="100%" gap="0" >
 		<!--
 		<s:Label id="posTime" right="0" width="40" height="100%" backgroundColor="#0FFF97"
 				 chromeColor="#FE0303" color="#FF0404" text="posTime" textAlign="center"
@@ -219,16 +229,7 @@
 			<s:BitmapImage source="@Embed(source='assets/clleft_2.png')" width="14" height="20"/>
 		</s:HGroup>
 		
-		<s:HGroup x="{mainGrp.width-79}" width="79" height="100%" gap="0">
-			<s:BitmapImage source="@Embed(source='assets/clright_2.png')" width="14" height="20"/>
-			<s:Group width="65" height="100%">
-				<s:BitmapImage source="@Embed(source='assets/clright_1.png')" width="65" height="20" />
-				<s:Label id="durTime" right="0" width="100%" height="100%" color="#cdcdcd" text="durTime" 
-						 top="2" textAlign="center" verticalAlign="middle"/>
-			</s:Group>
-		</s:HGroup>
-		
-		<s:HGroup x="79" id="mslider" width="{mainGrp.width - (79*2)}" height="100%" gap="0" >
+		<s:HGroup id="mslider" width="100%" height="100%" gap="0" depth="2" >
 			<s:Group width="100%" height="100%" mouseOut="onMouseOut(event)">
 				<!-- <s:Label id="bgc" backgroundColor="#222224" width="100%" height="100%" verticalCenter="0"/>
 				<s:Label id="fgc" backgroundColor="#cdcdcd" width="0" height="100%" verticalCenter="0"/>
@@ -238,18 +239,27 @@
 				<s:BitmapImage id="fgc" width="0" height="100%" verticalCenter="0" source="@Embed(source='assets/cproc.png')" />
 				<lac:IconButton id="lbtn" width="10" height="100%" mouseDown="lbtnDown" 
 								upimg="{leftBtnIcon}" overimg="{leftBtnIcon}" downimg="{leftBtnIcon}"
-							 	skinClass="org.lala.components.skins.IconButtonSkin"/>
+								skinClass="org.lala.components.skins.IconButtonSkin"/>
 				<lac:IconButton id="rbtn" width="10" height="100%" mouseDown="rbtnDown" 
 								upimg="{rightBtnIcon}" overimg="{rightBtnIcon}" downimg="{rightBtnIcon}"
 								skinClass="org.lala.components.skins.IconButtonSkin"/>
 			</s:Group>
 		</s:HGroup>
 		
+		<s:HGroup width="79" height="100%" gap="0">
+			<s:BitmapImage source="@Embed(source='assets/clright_2.png')" width="14" height="20"/>
+			<s:Group width="65" height="100%">
+				<s:BitmapImage source="@Embed(source='assets/clright_1.png')" width="65" height="20" />
+				<s:Label id="durTime" right="0" width="100%" height="100%" color="#cdcdcd" text="durTime" 
+						 top="2" textAlign="center" verticalAlign="middle"/>
+			</s:Group>
+		</s:HGroup>
 		<!--
 		<s:Label id="durTime" width="40" height="100%" backgroundColor="#FC9708" text="durTime"
 				 textAlign="center" verticalAlign="middle"/>
 		-->
-	</s:Group>
+	</s:HGroup>
+	
 	<s:Group id="tipGrp" width="88" height="37" y="-35" visible="false">
 		<s:BitmapImage source="@Embed(source='assets/tip.png')" width="{tipGrp.width}" height="{tipGrp.height}" />
 		<s:Label id="timeTip" text="11:11" color="#ffffff" width="{tipGrp.width}" height="30"
