@@ -4,7 +4,6 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:jw="com.longtailvideo.jwplayer.player.*"
 			   xmlns:mk="org.lala.components.*"
-			   xmlns:nks="org.nks.components.*"
 			   applicationComplete="application1_applicationCompleteHandler(event)"
 			   currentStateChange="application1_currentStateChangeHandler(event)"
 			   addedToStage="application1_addedToStageHandler(event)"
@@ -73,7 +72,6 @@
 				trace('播放器初始化完成.');
 				
 				_player = livePlayer.player;
-				cvUI.init(_player);
 				playerTool = new PlayerTool(_player);
 				loadVideo();
 			}			
@@ -178,7 +176,6 @@
 				<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" 
 							 top="0" bottom="0" left="0" right="0"/>
 			</s:BorderContainer>
-			<nks:cutVideoUI id="cvUI" visible="false" bottom="0"/>
 			<!-- 暂时去掉弹幕发送窗口 
 			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
 				<mk:NormalCommentInput id="nCommnetInput" width="100%" height="100%" />				
