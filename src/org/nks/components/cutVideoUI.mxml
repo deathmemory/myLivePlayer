@@ -133,10 +133,10 @@
 				var time:Number = p * this._duration;
 				try {
 					if ( _player.state == PlayerState.PAUSED ) {
-						this._player.seek(time + 4);
+						this._player.seek(time);
 						_player.pause();
 					} else
-						this._player.seek(time + 4);
+						this._player.seek(time);
 				} catch(e) {
 					trace("invalid video");
 				}
