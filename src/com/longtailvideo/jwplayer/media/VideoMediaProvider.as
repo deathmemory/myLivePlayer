@@ -154,11 +154,14 @@ package com.longtailvideo.jwplayer.media {
 
 
 		private function attachNetStream(stream:NetStream):void {
+			_video.attachNetStream(stream);
+			/*
 			if (_stage) {
 				_stage.attachNetStream(stream);
 			} else {
 				_video.attachNetStream(stream);
 			}
+			*/
 		}
 		
 		
