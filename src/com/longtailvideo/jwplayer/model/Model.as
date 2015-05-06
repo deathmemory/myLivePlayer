@@ -8,6 +8,7 @@ package com.longtailvideo.jwplayer.model {
 	import com.longtailvideo.jwplayer.media.SoundMediaProvider;
 	import com.longtailvideo.jwplayer.media.VideoMediaProvider;
 	import com.longtailvideo.jwplayer.media.YouTubeMediaProvider;
+	import com.longtailvideo.jwplayer.media.HTTPMediaProvider;
 	import com.longtailvideo.jwplayer.player.PlayerState;
 	
 	import flash.events.Event;
@@ -157,6 +158,7 @@ package com.longtailvideo.jwplayer.model {
 			setMediaProvider('rtmp', new RTMPMediaProvider());
 			setMediaProvider('sound', new SoundMediaProvider());
 			setMediaProvider('youtube', new YouTubeMediaProvider());
+			setMediaProvider('http', new HTTPMediaProvider());
 			setActiveMediaProvider('default');
 		}
 		
