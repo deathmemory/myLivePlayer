@@ -25,8 +25,6 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import org.lala.utils.PlayerTool;
-			
 			import com.longtailvideo.jwplayer.player.Player;
 			
 			import flashx.textLayout.conversion.TextConverter;
@@ -38,6 +36,7 @@
 			import org.lala.lang.langmgr;
 			import org.lala.plugins.CommentView;
 			import org.lala.utils.AppConfig;
+			import org.lala.utils.PlayerTool;
 			
 			/** 主播放器 **/
 			private var _player:Player;
@@ -51,7 +50,12 @@
 			private var commentView:CommentView = CommentView.getInstance();
 			/** 播放器小助手 **/
 			private var playerTool:PlayerTool;
-			
+			/** 主播精编url **/
+			private var _sUrl:String;
+			/** 隐藏进入房间标签计时器 **/
+			private var _entryBtnHideTimer:Timer = new Timer(1000, 1);
+			/** 是否是首页视频 **/
+			private var _isHomeVideo:Boolean = false;
 			protected function onLoaderComplete(evt:Event):void
 			{
 				trace("onLoaderComplete");
@@ -96,6 +100,18 @@
 				var params:Object = loaderInfo.parameters;
 				appConfig = new AppConfig(params);
 				
+				var url:String = params['file'];
+				var pattern:RegExp = /-([0-9]+)\.flv/;
+				var mch:Object = pattern.exec(url);
+				if ( null != mch && mch.length >= 2 ) {
+					var roomId = mch[1];
+					_sUrl = "http://www.nikksy.com/videolist.html?c=" + roomId;
+					
+					if ( params["hpv"] ) {
+						_isHomeVideo = true;
+					}
+				}
+				
 				/** 初始化到无界面状态 **/
 				if(appConfig.state == 'fullScreen')
 				{
@@ -113,7 +129,10 @@
 				//commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
 				commentView.addEventListener("innerFullScreen",innerFullScreenHandler);
 				commentView.version = NKSPLAYER::version;
-
+				/** 进入房间计时器初始化 **/
+				_entryBtnHideTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function(evt:TimerEvent):void{					
+					entryBtn.visible = false;
+				});
 				/** 全屏情况处理,更改state **/
 				stage.addEventListener( FullScreenEvent.FULL_SCREEN, fullScreenHandler );
 			}
@@ -122,6 +141,9 @@
 			private function initControlsLanguageCfg():void
 			{
 				langmgr.init(systemManager.loaderInfo.parameters);
+				entryBtn.textFlow = TextConverter.importToFlow(String("<font color=\"#ff6400\" size='18' >")
+					+ langmgr.getString("Entry_the_room") + ("</font>"), 
+					TextConverter.TEXT_FIELD_HTML_FORMAT);
 			}
 			
 			/** 处理播放器的工具条上的隐藏弹幕界面按钮事件 **/
@@ -162,6 +184,42 @@
 					currentState = savedState;
 				}
 			}
+			
+			/**
+			 * 响应鼠标移过是否显示进入房间标志
+			 * **/
+			protected function bordercontainer1_mouseOverAndMoveHandler(event:MouseEvent):void
+			{
+				if ( _isHomeVideo ) {
+					var url:String = ExternalInterface.call('window.location.href.toString');
+					if (null != _sUrl && _sUrl != url)
+					{
+						if ( false == entryBtn.visible )
+						{
+							entryBtn.visible = true;
+							_entryBtnHideTimer.start();
+						}
+						else
+						{
+							_entryBtnHideTimer.reset();
+							_entryBtnHideTimer.start();
+						}
+					}
+				}
+				
+				//trace("mouseMoveHandler x:" + event.localX + " y:" + event.localY);
+			}
+			
+			/**
+			 * 进入房间标签点击响应
+			 * **/
+			protected function entryBtn_clickHandler(event:MouseEvent):void
+			{
+				if (null != _sUrl) {
+					var request:URLRequest = new URLRequest(_sUrl);  
+					navigateToURL(request, "_blank");	
+				} 
+			}
 		]]>
 	</fx:Script>
 	<s:Group width="100%" height="100%">
@@ -172,9 +230,17 @@
 			<s:layout>
 				<s:VerticalLayout gap="1" paddingTop="0" paddingBottom="0"/>
 			</s:layout>
-			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false">
+			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false"
+							   mouseMove="bordercontainer1_mouseOverAndMoveHandler(event)" >
 				<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" 
 							 top="0" bottom="0" left="0" right="0"/>
+				<s:TextArea id="entryBtn" visible="false" width="300" height="60"
+							borderVisible="false" buttonMode="true"
+							click="entryBtn_clickHandler(event)" contentBackgroundAlpha="0.8"
+							contentBackgroundColor="0x000000" editable="false" horizontalCenter="0"
+							selectable="false" skinClass="org.lala.components.LiveLabel"
+							text="entry" textAlign="center" verticalAlign="middle"
+							verticalCenter="0" hideEffect="{fadeOut}" showEffect="{fadeIn}" />
 			</s:BorderContainer>
 			<!-- 暂时去掉弹幕发送窗口 
 			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
