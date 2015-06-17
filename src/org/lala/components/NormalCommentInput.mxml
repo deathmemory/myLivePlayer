@@ -110,28 +110,18 @@
 			
 		]]>
     </fx:Script>
-	<s:Group width="100%" height="100%">		
-		<s:layout>
-			<s:HorizontalLayout gap="1" verticalAlign="middle"/>
-		</s:layout>
-		<s:Spacer width="5" />
+	<s:HGroup width="100%" height="100%" gap="5" verticalAlign="middle" paddingLeft="5" paddingRight="5">
 		<mk:CommentStyleChooser id="styleChooser" width="30" height="30" />
-		<s:Spacer width="5" />
 		<mx:ColorPicker id="colorPicker" selectedColor="{styleChooser.stylePanel.color}" />
 		
 		<s:TextInput id="textInput" width="100%" height="75%" enter="sendButton_clickHandler(event)" maxChars="255"
 					 creationComplete="textInput_creationCompleteHandler(event)"
 					 activate="textInput_activateHandler(event)"/>
-		<s:Spacer width="5" />
 		<mk:IconButton id="sendButton" label="发送"  width="70" height="75%" click="sendButton_clickHandler(event)" 
 					   skinClass="org.lala.components.skins.IconButtonSkin"/>
-		<s:Spacer width="5" />
-	</s:Group>	
+	</s:HGroup>	
 	
-	<s:Group id="loginGroup" width="100%" height="100%" visible="false">
-		<s:layout>
-			<s:HorizontalLayout gap="1" verticalAlign="middle" horizontalAlign="center"/>
-		</s:layout>
+	<s:HGroup id="loginGroup" width="100%" height="100%" visible="false" gap="1" verticalAlign="middle" horizontalAlign="center">
 		<mx:Label id="logLab" selectable="true" text="please login first" />
-	</s:Group>
+	</s:HGroup>
 </s:Group>

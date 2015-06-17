@@ -83,13 +83,13 @@
     
 	<s:Rect id="fill_up" left="1" right="1" top="1" bottom="1" radiusX="{cornerRadius}" includeIn="up">
 		<s:fill>
-			<s:SolidColor color="0xdf380b"/>
+			<s:SolidColor color="0x519032"/>
 		</s:fill>
 	</s:Rect>
 	
 	<s:Rect id="fill_over" left="1" right="1" top="1" bottom="1" radiusX="{cornerRadius}" includeIn="over">
 		<s:fill>
-			<s:SolidColor color="0xf35b32"/>
+			<s:SolidColor color="0x5ca339"/>
 		</s:fill>
 	</s:Rect>
 	

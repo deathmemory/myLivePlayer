@@ -222,14 +222,8 @@
 			}
 		]]>
 	</fx:Script>
-	<s:Group width="100%" height="100%">
-		<s:layout>
-			<s:HorizontalLayout />
-		</s:layout>
-		<s:Group width="100%" height="100%">
-			<s:layout>
-				<s:VerticalLayout gap="1" paddingTop="0" paddingBottom="0"/>
-			</s:layout>
+	<s:HGroup width="100%" height="100%" gap="0">
+		<s:VGroup width="100%" height="100%" gap="1" paddingTop="0" paddingBottom="0">
 			<s:BorderContainer borderWeight="0" width="100%" height="100%" backgroundColor="#000000" borderVisible="false"
 							   mouseMove="bordercontainer1_mouseOverAndMoveHandler(event)" >
 				<jw:JWPlayer id="livePlayer" width="100%" height="100%" playerReady="playerReadyHandler(event)" 
@@ -242,12 +236,11 @@
 							text="entry" textAlign="center" verticalAlign="middle"
 							verticalCenter="0" hideEffect="{fadeOut}" showEffect="{fadeIn}" />
 			</s:BorderContainer>
-			<!-- 暂时去掉弹幕发送窗口 
 			<s:BorderContainer width="100%" height="40" borderVisible="true" excludeFrom="fullScreen">
 				<mk:NormalCommentInput id="nCommnetInput" width="100%" height="100%" />				
 			</s:BorderContainer>
-			-->
-		</s:Group>
-	</s:Group>
+		</s:VGroup>
+		<mk:BarrageTable width="350" height="100%" includeIn="normal"/>
+	</s:HGroup>
 	
 </s:Application>

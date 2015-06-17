@@ -9,3 +9,24 @@ mk|IconButton
 	color:#ffffff;
 }
 */
+
+mx|ToolTip
+{
+	backgroundColor: white;
+	backgroundAlpha: 1;
+	cornerRadius: 4;
+	color: black;
+	font-size:12px;
+}
+
+s|DataGrid {
+	resizableColumns:false;
+	rollOverColor:#cce1ff;
+	horizontalGridLines:false;
+}
+
+s|GridItemRenderer {
+	color:#FFFFFF;       /* defines the header text color */
+	chromeColor:#519032; /* defines the header background color */
+	textAlign:center;
+}

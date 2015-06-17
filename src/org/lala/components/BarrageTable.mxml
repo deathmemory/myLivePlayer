@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		 creationComplete="group1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			private var dgArray:Array = [ 
+				{time:'03:50', text:'this is short', data:"06-16"}, 
+				{time:'04:15', text:'this is a long text content lol this is a long text content lol ', data:"06-16"}]; 
+			[Bindable] 
+			public var initDG:ArrayCollection; 
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				initData();
+			}
+			
+			public function initData():void { 
+				initDG = new ArrayCollection(dgArray); 
+			} 
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:DataGrid id="barrageGrid" width="100%" height="100%" alternatingRowColors="[#ffffff,#c0c0c0]"
+				dataProvider="{initDG}" resizableColumns="false"
+				skinClass="org.lala.components.skins.mkDataGridSkin">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="time" headerText="time" width="50"/>
+				<s:GridColumn dataField="text" headerText="text" width="248" showDataTips="true"/>
+				<s:GridColumn dataField="data" headerText="data" width="50"/>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
+</s:Group>
