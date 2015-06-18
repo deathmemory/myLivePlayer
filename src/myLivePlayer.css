@@ -9,6 +9,10 @@ mk|IconButton
 	color:#ffffff;
 }
 */
+mk|IconButton
+{
+	color: white;
+}
 
 mx|ToolTip
 {

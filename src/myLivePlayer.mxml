@@ -56,6 +56,7 @@
 			private var _entryBtnHideTimer:Timer = new Timer(1000, 1);
 			/** 是否是首页视频 **/
 			private var _isHomeVideo:Boolean = false;
+			Security.loadPolicyFile("https://www.nikksy.com/crossdomain.xml");
 			protected function onLoaderComplete(evt:Event):void
 			{
 				trace("onLoaderComplete");
@@ -77,6 +78,8 @@
 				
 				_player = livePlayer.player;
 				playerTool = new PlayerTool(_player);
+				barrageTable.init(playerTool, root);
+				
 				loadVideo();
 			}			
 			
@@ -240,7 +243,7 @@
 				<mk:NormalCommentInput id="nCommnetInput" width="100%" height="100%" />				
 			</s:BorderContainer>
 		</s:VGroup>
-		<mk:BarrageTable width="350" height="100%" includeIn="normal"/>
+		<mk:BarrageTable id="barrageTable" width="350" height="100%" includeIn="normal"/>
 	</s:HGroup>
 	
 </s:Application>

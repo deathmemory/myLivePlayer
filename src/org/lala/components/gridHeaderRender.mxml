@@ -100,7 +100,7 @@ and <code>sortIndicator</code> properties.</p>
 		-->
 		<s:Label id="labelDisplay" 
 				 verticalCenter="1" left="0" right="0" top="0" bottom="0"
-				 textAlign="start"
+				 textAlign="center"
 				 fontWeight="bold"
 				 verticalAlign="middle"
 				 maxDisplayedLines="1"

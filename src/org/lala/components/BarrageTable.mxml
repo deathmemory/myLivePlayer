@@ -5,25 +5,99 @@
 		 creationComplete="group1_creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
+			import com.longtailvideo.jwplayer.utils.Strings;
+			
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
+			
+			import org.lala.net.CommentServer;
+			import org.lala.plugins.CommentView;
+			import org.lala.utils.CommentXMLConfig;
+			import org.lala.utils.MukioTaskQueue;
+			import org.lala.utils.PlayerTool;
 			
 			private var dgArray:Array = [ 
 				{time:'03:50', text:'this is short', data:"06-16"}, 
 				{time:'04:15', text:'this is a long text content lol this is a long text content lol ', data:"06-16"}]; 
 			[Bindable] 
 			public var initDG:ArrayCollection; 
+			private var _conf:CommentXMLConfig;
+			private var _server:CommentServer;
+			private var _playerTool:PlayerTool;
+			private var _commentView:CommentView;
+			
+			public function init(playerTool:PlayerTool, root:DisplayObject):void
+			{
+				_playerTool = playerTool;
+				_server = new CommentServer();
+				_conf = new CommentXMLConfig(root);
+				_commentView = CommentView.getInstance();
+				
+				var tasks:MukioTaskQueue = new MukioTaskQueue();
+				tasks.addEventListener(Event.COMPLETE,tasksCompleteHandler);
+				tasks.beginLoad(_conf.getConfURL(),confLoaded);
+				tasks.work();
+			}
 			
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				initData();
+				//initData();
 			}
 			
-			public function initData():void { 
-				initDG = new ArrayCollection(dgArray); 
-			} 
+			protected function tasksCompleteHandler(event:Event):void
+			{
+				trace("ServerXML load finished.");
+				if(!_conf.initialized)
+				{
+					trace("load init failed.");
+				}
+				else
+				{
+					//initialScriptEngine();		// 初始化脚本引擎   
+					trace("处理播放参数.");
+					routeAndPlay();
+					//playerContainer.enabled = true;
+				}
+			}
 			
+			private function routeAndPlay():void
+			{
+				var config:Object = this.systemManager.loaderInfo.parameters;
+				_server.userid = config.userid;
+				_server.session = config.session;
+				_server.cid = config.cid;
+				if(config.user)
+				{
+					_server.user = config.user;
+				}
+				
+				//_playerTool.loadCmtFile(_conf.getCommentFileURL(config.cid));
+				_commentView.loadComment(_conf.getCommentFileURL(config.cid));
+			}
+			
+			/** 加载配置xml处理函数 **/
+			private function confLoaded(data:*):void
+			{
+				trace("load config success.");
+				_conf.init(new XML(data));
+				_server.conf = _conf;
+				initDG = new ArrayCollection(); 
+				initDG = _commentView.provider.commentResource;
+			}
+			
+			/** 辅助函数:LabelFunction **/
+			private function digit(item:Object, column:GridColumn):String
+			{
+				return Strings.digits(item['stime']);
+			}
+			
+			private function date(item:Object, column:GridColumn):String
+			{
+				var str:String = item['date'];
+				var dateArr:Array = str.split(" ");
+				return dateArr[0];
+			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -34,9 +108,9 @@
 				skinClass="org.lala.components.skins.mkDataGridSkin">
 		<s:columns>
 			<s:ArrayList>
-				<s:GridColumn dataField="time" headerText="time" width="50"/>
-				<s:GridColumn dataField="text" headerText="text" width="248" showDataTips="true"/>
-				<s:GridColumn dataField="data" headerText="data" width="50"/>
+				<s:GridColumn dataField="stime" headerText="time" labelFunction="digit" width="50"/>
+				<s:GridColumn dataField="text" headerText="text" width="240" showDataTips="true"/>
+				<s:GridColumn dataField="date" headerText="date" labelFunction="date" width="50"/>
 			</s:ArrayList>
 		</s:columns>
 	</s:DataGrid>
